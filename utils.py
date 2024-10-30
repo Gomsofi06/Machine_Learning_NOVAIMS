@@ -15,9 +15,9 @@ def TestIndependence(X,y,var,alpha=0.05):
     print(result)
 
 
-def plot_injuries_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
+def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     """
-    Plots the number of injuries by county in New York.
+    Plots the number of cases by county in New York.
 
     ----------------------------------------
 
@@ -28,28 +28,28 @@ def plot_injuries_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp
     # Load New York counties shapefile
     ny_counties = gpd.read_file(shapefile_path)
     
-    # Create DataFrame with the number of injuries per County
-    inj_by_county_df = df_cleaned['County of Injury'].value_counts().reset_index()
+    # Create DataFrame with the number of cases per County
+    cases_per_county_df = df_cleaned['County of Injury'].value_counts().reset_index()
     
     # Rename columns
-    inj_by_county_df.columns = ['NAME', 'Count']
+    cases_per_county_df.columns = ['NAME', 'Count']
     
     # Capitalize the first letter of each entry in the 'NAME' column
-    inj_by_county_df['NAME'] = inj_by_county_df['NAME'].str.capitalize()
+    cases_per_county_df['NAME'] = cases_per_county_df['NAME'].str.capitalize()
     
-    # Merge the injury counts with the counties GeoDataFrame
-    ny_counties = ny_counties.merge(inj_by_county_df, on='NAME', how='right')
+    # Merge the cases counts with the counties GeoDataFrame
+    ny_counties = ny_counties.merge(cases_per_county_df, on='NAME', how='right')
     
     # Plot
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     ny_counties.plot(column='Count', ax=ax, legend=True,
-                     legend_kwds={'label': "Number of Injuries by County",
+                     legend_kwds={'label': "Number of Cases by County",
                                   'orientation': "horizontal"})
     
     # Remove x and y axis
     ax.set_axis_off()
     
-    plt.title('Injuries Density Map of New York by County')
+    plt.title('Cases Density Map of New York by County')
     plt.show()
 
 
