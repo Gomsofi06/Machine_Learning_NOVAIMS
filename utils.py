@@ -49,7 +49,7 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     # Remove x and y axis
     ax.set_axis_off()
     
-    plt.title('Cases Density Map of New York by County')
+    plt.title('Number of Cases by County')
     plt.show()
 
 
