@@ -120,6 +120,28 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
 
 # Other
 
+# Define the function that assigns a season based on the exact date
+def get_season(date):
+    # Extract the month and day from the date
+    month_day = (date.month, date.day)
+    
+    # Define the season boundaries (start of each season)
+    winter_start = (12, 21)
+    spring_start = (3, 20)
+    summer_start = (6, 21)
+    fall_start = (9, 23)
+    
+    # Determine the season based on the month and day
+    if (month_day >= winter_start) or (month_day < spring_start):
+        return 'Winter'
+    elif (month_day >= spring_start) and (month_day < summer_start):
+        return 'Spring'
+    elif (month_day >= summer_start) and (month_day < fall_start):
+        return 'Summer'
+    else:
+        return 'Fall'
+    
+
 def find_duplicate_frequencies_and_map(df, column_name):
     """
     Finds values in a DataFrame column that have the same frequency as others.
