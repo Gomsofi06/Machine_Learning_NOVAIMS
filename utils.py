@@ -3,6 +3,7 @@ from scipy import stats
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import holidays
 
 # Visualizations
 
@@ -140,6 +141,40 @@ def get_season(date):
         return 'Summer'
     else:
         return 'Fall'
+    
+def flag_public_holiday_accidents(df, date_column, state='NY'):
+    """
+    Flags accidents that happened on public holidays in a given state.
+    
+    Parameters:
+    df (pd.DataFrame): The DataFrame containing the accident data.
+    date_column (str): The name of the column containing the accident dates.
+    state (str): The state for which public holidays are to be checked (default is 'NY').
+    
+    Returns:
+    pd.DataFrame: The input DataFrame with an additional column flagging public holiday accidents.
+    """
+    
+    # Determine the year range from the 'Accident Date' column
+    start_year = df[date_column].dt.year.min()  # Get the earliest year
+    end_year = df[date_column].dt.year.max()  # Get the latest year
+
+    # Initialize an empty list to hold all the public holidays for the specified state
+    holiday_dates = []
+
+    # Loop through all years from the minimum to the maximum year in the dataset
+    for year in range(start_year, end_year + 1):  # Including the end year
+        # Get the public holidays for the current year in the specified state
+        holidays_in_year = holidays.US(years=year, state=state)
+        holiday_dates.extend(holidays_in_year.keys())  # Add holidays for the current year to the list
+
+    # Convert the list of public holiday dates to a pandas datetime format
+    holiday_dates = pd.to_datetime(holiday_dates)
+
+    # Create a new column in the dataframe to flag accidents that occurred on public holidays
+    df['Holiday_Accident'] = df[date_column].isin(holiday_dates).astype(int)
+
+    return df
     
 
 def find_duplicate_frequencies_and_map(df, column_name):
