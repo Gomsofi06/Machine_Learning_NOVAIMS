@@ -2,17 +2,82 @@ import pandas as pd
 from scipy import stats
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
+# Visualizations
 
-def TestIndependence(X,y,var,alpha=0.05):        
-    dfObserved = pd.crosstab(y,X) 
-    chi2, p, dof, expected = stats.chi2_contingency(dfObserved.values)
-    dfExpected = pd.DataFrame(expected, columns=dfObserved.columns, index = dfObserved.index)
-    if p<alpha:
-        result="{0} is IMPORTANT for Prediction".format(var)
-    else:
-        result="{0} is NOT an important predictor. (Discard {0} from model)".format(var)
-    print(result)
+def plot_categorical_features(df, categorical_features, max_categories=10):
+    # Get number of unique values for each feature, sorted for a cleaner layout
+    unique_counts = df[categorical_features].nunique().sort_values(ascending=True)
+    print("Number of unique values in each feature:")
+    print(unique_counts)
+
+    # Determine the number of rows and columns for the subplot grid
+    num_features = len(categorical_features)
+    num_cols = 3  # Set to 3 columns per row
+    num_rows = (num_features + num_cols - 1) // num_cols  # Calculate required rows
+
+    # Set up the figure and axes for subplots
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(18, num_rows * 5))
+    axes = axes.flatten()  # Flatten the axes array for easy iteration
+
+    # Plot each feature on a separate subplot
+    for i, feature in enumerate(categorical_features):
+        ax = axes[i]
+        
+        # Get value counts for the current feature
+        value_counts = df[feature].value_counts()
+        
+        # Limit to top categories if needed
+        if len(value_counts) > max_categories:
+            value_counts = value_counts.head(max_categories)
+            ax.set_title(f'Top {max_categories} Categories in {feature}')
+        else:
+            ax.set_title(f'Distribution of {feature}')
+        
+        # Create the bar plot on the specified axis
+        sns.barplot(x=value_counts.values, y=value_counts.index, ax=ax)
+        ax.set_xlabel('Count')
+
+    # Hide any unused subplots (if num_features is not a perfect multiple of num_cols)
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.show()
+
+# Function to create bar plots for features with fewer unique values
+def plot_value_counts(df, features, max_categories=10, n_cols=2):
+        n_features = len(features)
+        n_rows = (n_features + n_cols - 1) // n_cols
+        
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5*n_rows))
+        if n_rows == 1:
+            axes = axes.reshape(1, -1)
+        
+        for idx, feature in enumerate(features):
+            row = idx // n_cols
+            col = idx % n_cols
+            
+            value_counts = df[feature].value_counts()
+            if len(value_counts) > max_categories:
+                # Keep top categories and group others
+                other_count = value_counts[max_categories:].sum()
+                value_counts = value_counts[:max_categories]
+                value_counts['Others'] = other_count
+            
+            sns.barplot(x=value_counts.values, y=value_counts.index, ax=axes[row, col])
+            axes[row, col].set_title(f'Distribution of {feature}')
+            axes[row, col].set_xlabel('Count')
+            # Remove empty subplots
+        for idx in range(idx + 1, n_rows * n_cols):
+            row = idx // n_cols
+            col = idx % n_cols
+            fig.delaxes(axes[row, col])
+            
+        plt.tight_layout()
+        plt.show()
+
 
 
 def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
@@ -53,6 +118,8 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     plt.show()
 
 
+# Other
+
 def find_duplicate_frequencies_and_map(df, column_name):
     """
     Finds values in a DataFrame column that have the same frequency as others.
@@ -85,3 +152,13 @@ def find_duplicate_frequencies_and_map(df, column_name):
         
         # Map categories to frequency values
         df[new_column_name] = df[column_name].map(value_counts / len(df))
+
+def TestIndependence(X,y,var,alpha=0.05):        
+    dfObserved = pd.crosstab(y,X) 
+    chi2, p, dof, expected = stats.chi2_contingency(dfObserved.values)
+    dfExpected = pd.DataFrame(expected, columns=dfObserved.columns, index = dfObserved.index)
+    if p<alpha:
+        result="{0} is IMPORTANT for Prediction".format(var)
+    else:
+        result="{0} is NOT an important predictor. (Discard {0} from model)".format(var)
+    print(result)
