@@ -175,6 +175,23 @@ def flag_public_holiday_accidents(df, date_column, state='NY'):
     df['Holiday_Accident'] = df[date_column].isin(holiday_dates).astype(int)
 
     return df
+
+def flag_weekend_accidents(df, date_column):
+    """
+    Flags accidents that happened on weekends (Saturday or Sunday).
+    
+    Parameters:
+    df (pd.DataFrame): The DataFrame containing the accident data.
+    date_column (str): The name of the column containing the accident dates.
+    
+    Returns:
+    pd.DataFrame: The input DataFrame with an additional column flagging weekend accidents.
+    """
+    
+    # Create a new column to flag accidents that occurred on weekends
+    df['Weekend_Accident'] = df[date_column].dt.dayofweek.isin([5, 6]).astype(int)  # 5=Saturday, 6=Sunday
+
+    return df
     
 
 def find_duplicate_frequencies_and_map(df, column_name):
