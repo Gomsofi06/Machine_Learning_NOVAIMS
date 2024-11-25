@@ -4,6 +4,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import holidays
+import numpy as np
 
 # Visualizations
 
@@ -248,3 +249,5 @@ def TestIndependence(X,y,var,alpha=0.05):
     else:
         result="{0} is NOT an important predictor. (Discard {0} from model)".format(var)
     print(result)
+    
+    
