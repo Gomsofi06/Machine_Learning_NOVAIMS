@@ -195,7 +195,7 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def find_duplicate_frequencies_and_map(df, column_name, validation_df=None, test_df=None):
+def find_duplicate_frequencies_and_map(df, column_name, test_df=None):
     """
     Finds values in a DataFrame column that have the same frequency as others.
     If no values share the same frequency, maps the frequency of each value 
@@ -204,7 +204,6 @@ def find_duplicate_frequencies_and_map(df, column_name, validation_df=None, test
     Parameters:
     - df (pd.DataFrame): The DataFrame containing the column.
     - column_name (str): The name of the column to check for duplicate frequencies.
-    - validation_df (pd.DataFrame, optional): Validation DataFrame to apply the same transformation.
     - test_df (pd.DataFrame, optional): Test DataFrame to apply the same transformation.
     
     Returns:
@@ -229,10 +228,6 @@ def find_duplicate_frequencies_and_map(df, column_name, validation_df=None, test
         
         # Map categories to frequency values
         df[new_column_name] = df[column_name].map(value_counts / len(df))
-        
-        # Apply the same transformation to validation_df if provided
-        if validation_df is not None:
-            validation_df[new_column_name] = validation_df[column_name].map(value_counts / len(df))
 
         # Apply the same transformation to test_df if provided
         if test_df is not None:
