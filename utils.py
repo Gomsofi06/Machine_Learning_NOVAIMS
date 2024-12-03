@@ -234,15 +234,25 @@ def find_duplicate_frequencies_and_map(df, column_name, test_df=None):
             test_df[new_column_name] = test_df[column_name].map(value_counts / len(df))
 
 
-
-def TestIndependence(X,y,var,alpha=0.05):        
-    dfObserved = pd.crosstab(y,X) 
-    chi2, p, dof, expected = stats.chi2_contingency(dfObserved.values)
-    dfExpected = pd.DataFrame(expected, columns=dfObserved.columns, index = dfObserved.index)
-    if p<alpha:
-        result="{0} is IMPORTANT for Prediction".format(var)
+def categorize_impact(impact):
+    if impact > 50000:
+        return 0 # Low
+    elif 1000 <= impact <= 50000:
+        return 1 # Medium
     else:
-        result="{0} is NOT an important predictor. (Discard {0} from model)".format(var)
-    print(result)
+        return 2 # High
+
+def financial_impact(df):
     
+    adjusted_dependents = df['Number of Dependents'].replace(0, 1)
     
+    financial_impact = df['Average Weekly Wage'] / adjusted_dependents
+
+    df['Financial Impact Category'] = financial_impact.apply(categorize_impact)
+
+
+def sine_cosine_encoding(df, column, mapping):
+    df[f"{column}_Ordinal"] = df[column].map(mapping)
+    df[f"{column}_Sin"] = np.sin(2 * np.pi * df[f"{column}_Ordinal"] / 4)
+    df[f"{column}_Cos"] = np.cos(2 * np.pi * df[f"{column}_Ordinal"] / 4)
+    return df.drop(columns=[f"{column}_Ordinal", column])
