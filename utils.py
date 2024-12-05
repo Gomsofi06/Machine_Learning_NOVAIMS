@@ -256,3 +256,51 @@ def sine_cosine_encoding(df, column, mapping):
     df[f"{column}_Sin"] = np.sin(2 * np.pi * df[f"{column}_Ordinal"] / 4)
     df[f"{column}_Cos"] = np.cos(2 * np.pi * df[f"{column}_Ordinal"] / 4)
     return df.drop(columns=[f"{column}_Ordinal", column])
+
+def calculate_birth_year(df):
+    # Ensure the correct format of 'Birth Year'
+    df['Accident Date'] = pd.to_datetime(df['Accident Date'], errors='coerce')
+
+    # Filter the rows where 'Birth Year' is NaN, but 'Age at Injury' and 'Accident Date' are not NaN
+    condition = df['Birth Year'].isna() & df['Age at Injury'].notna() & df['Accident Date'].notna()
+
+    # Replace missing 'Birth Year' with the difference between 'Accident Date' year and 'Age at Injury'
+    df.loc[condition, 'Birth Year'] = df.loc[condition, 'Accident Date'].dt.year - df.loc[condition, 'Age at Injury']
+
+
+def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
+    # Define the model name
+    model_name = type(model).__name__
+
+    # Calculate F1 scores
+    f1_train = f1_score(y_train, y_train_pred, average='macro')
+    f1_val = f1_score(y_val, y_val_pred, average='macro')
+
+    # Get model parameters
+    model_params = model.get_params()
+
+    # Create a dictionary of results, including the model name in the third column
+    result = {
+        'Model Name': model_name,
+        'F1 Train': f1_train,
+        'F1 Validation': f1_val,
+        **model_params, 
+        'Feature Group': features,
+    }
+
+    # Convert dictionary to DataFrame
+    result_df = pd.DataFrame([result])
+
+    # Define the file name (CSV in this case)
+    filename = "model_results.csv"
+
+    # Check if the file already exists
+    try:
+        # If the file exists, append the new results without the header
+        existing_df = pd.read_csv(filename)
+        result_df.to_csv(filename, index=False, header=False, mode='a')  # Append to existing file
+    except FileNotFoundError:
+        # If the file does not exist, create a new file and write the header
+        result_df.to_csv(filename, index=False)
+
+    print(f"Results added to {filename}")
