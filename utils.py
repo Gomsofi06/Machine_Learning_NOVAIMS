@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import holidays
 import numpy as np
+from sklearn.metrics import f1_score
 
 # Visualizations
 
@@ -304,3 +305,57 @@ def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
         result_df.to_csv(filename, index=False)
 
     print(f"Results added to {filename}")
+
+def NA_imputer(train_df, test_df):
+
+    columns = ["Age at Injury","Average Weekly Wage"]
+
+    imputation_value  = train_df[columns].median()
+    for col in columns:
+            train_df[col] = train_df[col].fillna(imputation_value[col])
+            test_df[col] = test_df[col].fillna(imputation_value[col])
+
+    # Ensure 'Accident Date' is in datetime format
+    train_df['Accident Date'] = pd.to_datetime(train_df['Accident Date'], errors='coerce')
+    test_df['Accident Date'] = pd.to_datetime(test_df['Accident Date'], errors='coerce')
+
+    # Now apply your logic
+    condition = train_df['Birth Year'].isna() & train_df['Age at Injury'].notna() & train_df['Accident Date'].notna()
+    train_df.loc[condition, 'Birth Year'] = train_df.loc[condition, 'Accident Date'].dt.year - train_df.loc[condition, 'Age at Injury']
+
+    # Filter the rows where 'Birth Year' is NaN, but 'Age at Injury' and 'Accident Date' are not NaN
+    condition = test_df['Birth Year'].isna() & test_df['Age at Injury'].notna() & test_df['Accident Date'].notna()
+    # Replace missing 'Birth Year' with the difference between 'Accident Date' year and 'Age at Injury'
+    test_df.loc[condition, 'Birth Year'] = test_df.loc[condition, 'Accident Date'].dt.year - test_df.loc[condition, 'Age at Injury']
+
+    train_df.drop('Accident Date',axis=1,inplace=True)
+    test_df.drop('Accident Date',axis=1,inplace=True)
+
+
+def create_new_features(train_df, test_df):
+
+    median_wage = train_df['Average Weekly Wage'].median()
+    train_df['Relative_Wage'] = np.where(train_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
+    test_df['Relative_Wage'] = np.where(test_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
+
+    financial_impact(train_df)
+    financial_impact(test_df)
+
+    age_bins = [0, 25, 40, 55, 70, 100]
+    age_labels = [0,1,2,3,4] #['Young', 'Mid-Age', 'Experienced', 'Senior', 'Elderly']
+    train_df['Age_Group'] = pd.cut(train_df['Age at Injury'], bins=age_bins, labels=age_labels)
+    test_df['Age_Group'] = pd.cut(test_df['Age at Injury'], bins=age_bins, labels=age_labels)
+
+
+def target_decoder():
+    class_mapping = {
+        0:'1. CANCELLED', 
+        1:'2. NON-COMP',
+        2:'3. MED ONLY', 
+        3:'4. TEMPORARY',
+        4:'5. PPD SCH LOSS', 
+        5:'6. PPD NSL', 
+        6:'7. PTD', 
+        7:'8. DEATH'
+    }
+    return np.array(list(class_mapping.values()))
