@@ -1,7 +1,6 @@
 numerical_features = [
     'Age at Injury','Average Weekly Wage','Birth Year','IME-4 Count',
     'Number of Dependents','Days_to_First_Hearing','Days_to_C2','Days_to_C3',
-    'Accident_Season_Sin','Accident_Season_Cos',
     'C-2 Date_Year','C-2 Date_Month','C-2 Date_Day','C-2 Date_DayOfWeek',
     'C-3 Date_Year','C-3 Date_Month','C-3 Date_Day', 'C-3 Date_DayOfWeek',
     'First Hearing Date_Year','First Hearing Date_Month','First Hearing Date_Day','First Hearing Date_DayOfWeek'
@@ -36,4 +35,5 @@ categorical_features = [
     'Accident Date_Month','Accident Date_Day','Accident Date_DayOfWeek','Assembly Date_Year',
     'Assembly Date_Month','Assembly Date_Day','Assembly Date_DayOfWeek',
     'Holiday_Accident','Weekend_Accident', 'Risk_Level','Gender_F','Gender_M',
+    'Accident_Season_Sin','Accident_Season_Cos'
 ]
