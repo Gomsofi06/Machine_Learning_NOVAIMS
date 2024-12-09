@@ -343,8 +343,12 @@ def create_new_features(train_df, test_df):
 
     age_bins = [0, 25, 40, 55, 70, 100]
     age_labels = [0,1,2,3,4] #['Young', 'Mid-Age', 'Experienced', 'Senior', 'Elderly']
-    train_df['Age_Group'] = pd.cut(train_df['Age at Injury'], bins=age_bins, labels=age_labels)
-    test_df['Age_Group'] = pd.cut(test_df['Age at Injury'], bins=age_bins, labels=age_labels)
+    train_df['Age_Group'] = pd.cut(
+    train_df['Age at Injury'], bins=age_bins, labels=age_labels, right=False
+    ).cat.codes
+    test_df['Age_Group'] = pd.cut(
+        test_df['Age at Injury'], bins=age_bins, labels=age_labels, right=False
+    ).cat.codes
 
 
 def target_decoder():
