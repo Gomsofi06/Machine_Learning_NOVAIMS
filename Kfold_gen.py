@@ -28,9 +28,9 @@ for random_state in [42,69]:
         X_train, X_val = X.iloc[train_index], X.iloc[val_index]
         y_train, y_val = y.iloc[train_index], y.iloc[val_index]
 
-        NA_imputer(X_train,y_train)
+        NA_imputer(X_train,X_val)
         
-        create_new_features(X_train,y_train)
+        create_new_features(X_train,X_val)
 
         st = StandardScaler()
         X_train[numerical_features] = st.fit_transform(X_train[numerical_features])
