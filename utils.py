@@ -93,11 +93,6 @@ def plot_value_counts(df, features, max_categories=10, n_cols=2):
         plt.show()
 
 
-
-import geopandas as gpd
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-
 def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     """
     Plots the number of cases by county in New York.
@@ -140,6 +135,19 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
 
 
 # Other
+
+def limit_feature(df, feature, minimum=None, maximum=None):
+    # Set the minimum and maximum values from the data if not provided
+    if minimum is None:
+        minimum = df[feature].min()
+    if maximum is None:
+        maximum = df[feature].max()
+
+    print(f'Number of people below {minimum} years old: {len(df[df[feature] < minimum])}.')
+    print(f'Number of people above {maximum} years old: {len(df[df[feature] > maximum])}.')
+    # Apply the limit to the feature
+    df[feature] = df[feature].apply(lambda x: np.nan if (x < minimum) or (x > maximum) else x)
+
 
 # Define the function that assigns a season based on the exact date
 def get_season(date):
