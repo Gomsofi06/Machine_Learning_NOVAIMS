@@ -384,3 +384,7 @@ def version_control():
 
 def custom_trial_dirname(trial, model_name):
     return f"./GridSearch/{model_name}/trial_{trial.trial_id}"
+
+def float_to_int(df, columns):
+    for col in columns:
+        df[col] = df[col].astype('Int64')
