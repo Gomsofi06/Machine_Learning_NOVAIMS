@@ -139,10 +139,11 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
 def limit_feature(df_list, feature, minimum=None, maximum=None):
     for i, df in enumerate(df_list):
         print(f"DataFrame {i+1}:")
+        print(f'Number of rows with 0: {len(df[df[feature] == 0])}.')
         if minimum is not None:
-            print(f'Number of people below {minimum} years old: {len(df[df[feature] < minimum])}.')
+            print(f'Number of rows below {minimum}: {len(df[df[feature] < minimum])}.')
         if maximum is not None:
-            print(f'Number of people above {maximum} years old: {len(df[df[feature] > maximum])}.')
+            print(f'Number of rows above {maximum}: {len(df[df[feature] > maximum])}.')
         
         # Apply the limits to the feature, setting out-of-bounds values to NaN
         if minimum is not None:
