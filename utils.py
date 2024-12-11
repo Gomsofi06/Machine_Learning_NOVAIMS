@@ -363,3 +363,24 @@ def target_decoder():
         7:'8. DEATH'
     }
     return np.array(list(class_mapping.values()))
+
+
+def version_control():
+
+    file_path = 'version.txt'
+
+    try:
+        with open(file_path, 'r') as file:
+            count = int(file.read().strip())
+    except FileNotFoundError:
+        count = 0
+
+    count += 1
+
+    with open(file_path, 'w') as file:
+        file.write(str(count))
+
+    return count
+
+def custom_trial_dirname(trial, model_name):
+    return f"./GridSearch/{model_name}/trial_{trial.trial_id}"

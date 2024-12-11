@@ -37,3 +37,58 @@ categorical_features = [
     'Holiday_Accident','Weekend_Accident', 'Risk_Level','Gender_F','Gender_M',
     'Accident_Season_Sin','Accident_Season_Cos'
 ]
+
+
+essential_features = [
+    "IME-4 Count",
+    "WCIO Nature of Injury Code",
+    "Years Past Accident",
+    "Industry Code",
+    "Average Weekly Wage",
+    # Additional categorical features
+    "Carrier Name",
+    "Carrier Type",
+    "County of Injury",
+    "District Name",
+    "Gender",
+    "Medical Fee Region",
+    "Attorney/Representative",
+    "COVID-19 Indicator",
+    "First Hearing Date Occurred",
+    "C-2 Date Occurred",
+    "C-3 Date Occurred",
+    "Birth Year Occurred",
+    "Age at Injury Occurred",
+    "Accident Date Occurred"
+]
+
+reduced_features = numerical_features = [
+    "Age at Injury",
+    "IME-4 Count",
+    "Days_to_First_Hearing",
+    "Average Weekly Wage",
+    "Birth Year",
+    "C-2 Date_Year",
+    "C-3 Date_Year",
+    "First Hearing Date_Year",
+    "First Hearing Date_Month"
+    # Additional categorical features
+    "County of Injury",
+    "District Name",
+    "Industry Code",
+    "Medical Fee Region",
+    "Attorney/Representative",
+    "COVID-19 Indicator",
+    "Known C-2 Date",
+    "Known C-3 Date",
+    "Known First Hearing Date",
+    "Accident Date_Year",
+    "Accident Date_Month",
+    "Accident Date_Day",
+    "Gender_F",
+    "Gender_M",
+    "Weekend_Accident"
+]
+
+
+all_features = numerical_features + categorical_features
