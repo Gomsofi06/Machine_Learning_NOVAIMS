@@ -167,6 +167,17 @@ def limit_feature(df_list, feature, minimum=None, maximum=None):
             df[feature] = df[feature].where(df[feature] <= maximum, np.nan)
         print()
 
+def extract_dates_components(df_list, date_columns):
+    # Loop through each dataframe
+    for df in df_list:
+        # Loop through each date column and extract year, month, day, and day of the week
+        for col in date_columns:
+            # Extract components from each date column, filling missing values with -1
+            df[f'{col}_Year'] = df[col].dt.year.fillna(-1).astype(int)
+            df[f'{col}_Month'] = df[col].dt.month.fillna(-1).astype(int)
+            df[f'{col}_Day'] = df[col].dt.day.fillna(-1).astype(int)
+            df[f'{col}_DayOfWeek'] = df[col].dt.dayofweek.fillna(-1).astype(int)
+
 
 # Define the function that assigns a season based on the exact date
 def get_season(date):
