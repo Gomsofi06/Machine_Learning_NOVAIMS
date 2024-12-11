@@ -1,11 +1,22 @@
-import pandas as pd
-from scipy import stats
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import holidays
-import numpy as np
+# Data Processing and Analysis
+import pandas as pd  
+import numpy as np        
+from scipy import stats   
 from sklearn.metrics import f1_score
+
+# Visualization
+import geopandas as gpd
+import matplotlib.pyplot as plt 
+import seaborn as sns    
+from matplotlib.colors import LinearSegmentedColormap       
+
+# Others
+import holidays
+
+
+# Color of plots
+plot_color = '#568789'
+custom_cmap = LinearSegmentedColormap.from_list("custom_gradient", ['#568789', '#efb440'])
 
 # Visualizations
 
@@ -83,6 +94,10 @@ def plot_value_counts(df, features, max_categories=10, n_cols=2):
 
 
 
+import geopandas as gpd
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+
 def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     """
     Plots the number of cases by county in New York.
@@ -92,6 +107,7 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     Parameters:
     - df_cleaned: DataFrame containing the injury data with a column 'County of Injury'.
     - shapefile_path: Path to the New York counties shapefile.
+    - custom_cmap: Optional custom colormap (use default if None).
     """
     # Load New York counties shapefile
     ny_counties = gpd.read_file(shapefile_path)
@@ -112,13 +128,15 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     ny_counties.plot(column='Count', ax=ax, legend=True,
                      legend_kwds={'label': "Number of Cases by County",
-                                  'orientation': "horizontal"})
+                                  'orientation': "horizontal"},
+                     cmap=custom_cmap)
     
     # Remove x and y axis
     ax.set_axis_off()
     
     plt.title('Number of Cases by County')
     plt.show()
+
 
 
 # Other
