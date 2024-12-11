@@ -136,6 +136,21 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
 
 # Other
 
+def datatype_changes(df_list):
+    for df in df_list:
+        # Select date columns
+        date_cols = df.columns[df.columns.str.contains('Date')]
+        # Transform into date using pandas
+        df[date_cols] = df[date_cols].apply(pd.to_datetime)
+
+        # Select code columns
+        code_cols = df.columns[df.columns.str.contains('Code')]
+        # Transform code columns to float
+        df[code_cols] = df[code_cols].astype('str')
+
+        float_to_int(df, ['Age at Injury', 'Birth Year'])
+
+
 def limit_feature(df_list, feature, minimum=None, maximum=None):
     for i, df in enumerate(df_list):
         print(f"DataFrame {i+1}:")
