@@ -136,17 +136,20 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
 
 # Other
 
-def limit_feature(df, feature, minimum=None, maximum=None):
-    # Set the minimum and maximum values from the data if not provided
-    if minimum is None:
-        minimum = df[feature].min()
-    if maximum is None:
-        maximum = df[feature].max()
-
-    print(f'Number of people below {minimum} years old: {len(df[df[feature] < minimum])}.')
-    print(f'Number of people above {maximum} years old: {len(df[df[feature] > maximum])}.')
-    # Apply the limit to the feature
-    df[feature] = df[feature].apply(lambda x: np.nan if (x < minimum) or (x > maximum) else x)
+def limit_feature(df_list, feature, minimum=None, maximum=None):
+    for i, df in enumerate(df_list):
+        print(f"DataFrame {i+1}:")
+        if minimum is not None:
+            print(f'Number of people below {minimum} years old: {len(df[df[feature] < minimum])}.')
+        if maximum is not None:
+            print(f'Number of people above {maximum} years old: {len(df[df[feature] > maximum])}.')
+        
+        # Apply the limits to the feature, setting out-of-bounds values to NaN
+        if minimum is not None:
+            df[feature] = df[feature].where(df[feature] >= minimum, np.nan)
+        if maximum is not None:
+            df[feature] = df[feature].where(df[feature] <= maximum, np.nan)
+        print()
 
 
 # Define the function that assigns a season based on the exact date
