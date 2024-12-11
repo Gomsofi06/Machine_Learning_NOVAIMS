@@ -178,6 +178,17 @@ def extract_dates_components(df_list, date_columns):
             df[f'{col}_Day'] = df[col].dt.day.fillna(-1).astype(int)
             df[f'{col}_DayOfWeek'] = df[col].dt.dayofweek.fillna(-1).astype(int)
 
+def dist_dates(df_list):
+    for df in df_list:
+        # Calculate the time difference between relevant dates
+        df['Days_to_First_Hearing'] = (df['First Hearing Date'] - df['Accident Date']).dt.days
+        df['Days_to_C2'] = (df['C-2 Date'] - df['Accident Date']).dt.days
+        df['Days_to_C3'] = (df['C-3 Date'] - df['Accident Date']).dt.days
+
+        df['Days_to_First_Hearing'] = df['Days_to_First_Hearing'].fillna(-1).astype(int)
+        df['Days_to_C2'] = df['Days_to_C2'].fillna(-1).astype(int)
+        df['Days_to_C3'] = df['Days_to_C3'].fillna(-1).astype(int)
+
 
 # Define the function that assigns a season based on the exact date
 def get_season(date):
