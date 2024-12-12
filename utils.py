@@ -12,6 +12,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 # Others
 import holidays
+from sklearn.preprocessing import OneHotEncoder
 
 
 # Color of plots
@@ -300,6 +301,33 @@ def find_duplicate_frequencies_and_map(df, column_name, test_df=None):
         # Apply the same transformation to test_df if provided
         if test_df is not None:
             test_df[new_column_name] = test_df[column_name].map(value_counts / len(df))
+
+def apply_one_hot_encoding(df, features):
+    """
+    Applies one-hot encoding to the specified features in the DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame.
+    - features (list): List of column names in the DataFrame to be encoded.
+    - drop_first (bool): Whether to drop the first category to avoid multicollinearity. Default is True.
+
+    Returns:
+    - pd.DataFrame: The DataFrame with the specified features one-hot encoded.
+    """
+    # Initialize the encoder with drop_first option
+    oh_enc = OneHotEncoder(drop='first', sparse_output=False)
+    
+    # Fit and transform the selected features
+    encoded_features = oh_enc.fit_transform(df[features]).astype(int)
+    
+    # Create a new DataFrame for the encoded features
+    encoded_feature_names = oh_enc.get_feature_names_out(features)
+    encoded_df = pd.DataFrame(encoded_features, columns=encoded_feature_names, index=df.index)
+    
+    # Combine the encoded features with the original DataFrame (dropping the original columns)
+    df_encoded = pd.concat([df.drop(columns=features), encoded_df], axis=1)
+    
+    return df_encoded
 
 
 def categorize_impact(impact):
