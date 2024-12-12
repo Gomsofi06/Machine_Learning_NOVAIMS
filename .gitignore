@@ -1,6 +1,7 @@
 /project_data
 /preprocessed_data
 /catboost_info
+/eda_data
 
 test.py 
 

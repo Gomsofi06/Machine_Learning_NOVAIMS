@@ -264,43 +264,49 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def find_duplicate_frequencies_and_map(df, column_name, test_df=None):
-    """
-    Finds values in a DataFrame column that have the same frequency as others.
-    If no values share the same frequency, maps the frequency of each value 
-    in the column to a new column with 'Enc ' added as a prefix to the original column name.
-    
-    Parameters:
-    - df (pd.DataFrame): The DataFrame containing the column.
-    - column_name (str): The name of the column to check for duplicate frequencies.
-    - test_df (pd.DataFrame, optional): Test DataFrame to apply the same transformation.
-    
-    Returns:
-    - None: Prints messages and, if applicable, adds new columns with frequency mappings.
-    """
-    # Define the new column name
+def frequency_encoding(df, column_name, test_df=None, verbose= False):
+
     new_column_name = f"Enc {column_name}"
     
-    # Get the counts of each unique value
     value_counts = df[column_name].value_counts()
 
-    # Group values by their frequency
     frequency_groups = value_counts.groupby(value_counts).apply(lambda x: x.index.tolist()).to_dict()
-    
-    # Check if any frequency group has more than one value (i.e., duplicates)
+
     duplicate_counts = {freq: values for freq, values in frequency_groups.items() if len(values) > 1}
 
-    if duplicate_counts:
-        print("Some values have the same frequency.")
-    else:
-        print("No values have the same frequency. Mapping frequencies to new column.")
-        
-        # Map categories to frequency values
-        df[new_column_name] = df[column_name].map(value_counts / len(df))
+    if verbose:
+        if duplicate_counts:
+            print("Some values have the same frequency.")
+        else:
+            print("No values have the same frequency. Mapping frequencies to new column.")
+    
+    # Map categories to frequency values
+    df[new_column_name] = df[column_name].map(value_counts / len(df))
 
-        # Apply the same transformation to test_df if provided
-        if test_df is not None:
-            test_df[new_column_name] = test_df[column_name].map(value_counts / len(df))
+    # Apply the same transformation to test_df if provided
+    if test_df is not None:
+        test_df[new_column_name] = test_df[column_name].map(value_counts / len(df))
+
+
+def apply_frequency_encoding(df, test_df=None):
+    frequency_encoder_vars = [
+        #  "Carrier Name",
+        'County of Injury',
+        'District Name',
+        'Industry Code',
+        'WCIO Cause of Injury Code',
+        'WCIO Nature of Injury Code',
+        'WCIO Part Of Body Code',
+        'Zip Code'
+    ]
+
+    for col in frequency_encoder_vars:
+        frequency_encoding(df, col, test_df)
+    
+    df = df.drop(columns=frequency_encoder_vars)
+    if test_df is not None:
+        test_df = test_df.drop(columns=frequency_encoder_vars) 
+
 
 def apply_one_hot_encoding(df, features):
     """
@@ -483,3 +489,7 @@ def custom_trial_dirname(trial, model_name):
 def float_to_int(df, columns):
     for col in columns:
         df[col] = df[col].astype('Int64')
+
+
+def performe_frequency_encoding():
+    return
