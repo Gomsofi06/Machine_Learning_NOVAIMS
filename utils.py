@@ -133,7 +133,37 @@ def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
     plt.title('Number of Cases by County')
     plt.show()
 
+def plot_distribution_and_boxplot(df, column_name, color='#568789'):
+    """
+    Function to plot both the distribution and boxplot of a specified column in a DataFrame.
 
+    Parameters:
+    df (pandas.DataFrame): DataFrame containing the data.
+    column_name (str): The name of the column to plot.
+    color (str): Color for the plots (default is '#568789').
+
+    Returns:
+    None
+    """
+    # Create a 1x2 subplot for both the distribution and boxplot
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+    # Plot the distribution on the first axis (left)
+    sns.histplot(df[column_name], kde=True, bins=30, color=color, ax=axes[0])
+    axes[0].set_title(f"Distribution of {column_name}")
+    axes[0].set_xlabel(column_name)
+    axes[0].set_ylabel("Frequency")
+
+    # Plot the boxplot on the second axis (right)
+    sns.boxplot(x=df[column_name], color=color, ax=axes[1])
+    axes[1].set_title(f"Boxplot of {column_name}")
+    axes[1].set_xlabel(column_name)
+
+    # Adjust the layout for better spacing
+    plt.tight_layout()
+
+    # Show the plot
+    plt.show()
 
 # Other
 
