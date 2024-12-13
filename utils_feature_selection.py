@@ -33,7 +33,7 @@ warnings.filterwarnings('ignore')
 from utils import *
 
 
-def TestIndependence(X,y,var,alpha=0.05):
+def TestIndependence(X,y,var,alpha=0.05, verbose=True):
     dfObserved = pd.crosstab(y,X)
     chi2, p, dof, expected = stats.chi2_contingency(dfObserved.values)
     dfExpected = pd.DataFrame(expected, columns=dfObserved.columns, index = dfObserved.index)
@@ -41,7 +41,10 @@ def TestIndependence(X,y,var,alpha=0.05):
         result="{0} is IMPORTANT for Prediction".format(var)
     else:
         result="{0} is NOT an important predictor. (Discard {0} from model)".format(var)
-    print(result)
+        if not verbose:
+            print(result)
+    if verbose:
+        print(result)
 
 
 def feature_selection_RFE(X,y,n_features,model=None):
@@ -78,8 +81,7 @@ def feature_selection_Lasso(X,y):
     coef = pd.Series(reg.coef_, index = X.columns)
     coef.sort_values()
     plot_importance(coef,'Lasso')
-    print(coef)
-
+    return coef
 
 def plot_importance(coef,name):
     imp_coef = coef.sort_values()
@@ -87,7 +89,6 @@ def plot_importance(coef,name):
     imp_coef.plot(kind = "barh")
     plt.title("Feature importance using " + name + " Model")
     plt.show()
-
 
 
 def check_performace(model,X,y,features_to_scale,n_folds = 5):
@@ -111,6 +112,8 @@ def check_performace(model,X,y,features_to_scale,n_folds = 5):
         scaler = StandardScaler().fit(X_train[features_to_scale])
         X_train[features_to_scale]  = scaler.transform(X_train[features_to_scale])
         X_val[features_to_scale]  = scaler.transform(X_val[features_to_scale])  
+
+        # implement FS
 
         model.fit(X_train, y_train)
     
