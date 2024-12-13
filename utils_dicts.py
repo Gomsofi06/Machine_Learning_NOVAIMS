@@ -13,12 +13,10 @@ numerical_features = [
     'First Hearing Date_Month',
     'First Hearing Date_Day',
     'First Hearing Date_DayOfWeek',
-    'Days_to_C2',
-    'Days_to_C3',
     'First Hearing Date_Year','First Hearing Date_Month','First Hearing Date_Day','First Hearing Date_DayOfWeek'
 ]
 categorical_features = [
-    'Alternative Dispute Resolution',
+    'Alternative Dispute Resolution_U','Alternative Dispute Resolution_Y',
     'Enc County of Injury', 'Enc District Name','Enc Industry Code',
     'Medical Fee Region_II','Medical Fee Region_III','Medical Fee Region_IV',
     'Known Accident Date','Known Assembly Date','Known C-2 Date','Known C-3 Date',
@@ -39,7 +37,11 @@ categorical_features = [
     'Accident Date_Month','Accident Date_Day','Accident Date_DayOfWeek','Assembly Date_Year',
     'Assembly Date_Month','Assembly Date_Day','Assembly Date_DayOfWeek',
     'Holiday_Accident','Weekend_Accident', 'Risk_Level','Gender_M',
-    'Accident_Season_Sin','Accident_Season_Cos'
+    'Accident_Season_Sin','Accident_Season_Cos',
+    
+    'Relative_Wage',
+    'Financial Impact Category',
+    'Age_Group',
 ]
 
 """

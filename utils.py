@@ -267,6 +267,10 @@ def flag_weekend_accidents(df, date_column):
 def frequency_encoding(df, column_name, test_df=None, verbose= False):
 
     new_column_name = f"Enc {column_name}"
+
+    df[column_name] = df[column_name].fillna("Unknown")
+    if test_df is not None:
+        test_df[column_name] = test_df[column_name].fillna("Unknown")
     
     value_counts = df[column_name].value_counts()
 
@@ -306,6 +310,7 @@ def apply_frequency_encoding(df, test_df=None):
     df = df.drop(columns=frequency_encoder_vars)
     if test_df is not None:
         test_df = test_df.drop(columns=frequency_encoder_vars) 
+    return df, test_df
 
 
 def apply_one_hot_encoding(df, features):
@@ -442,14 +447,18 @@ def create_new_features(train_df, test_df):
     financial_impact(train_df)
     financial_impact(test_df)
 
-    age_bins = [0, 25, 40, 55, 70, 100]
-    age_labels = [0,1,2,3,4] #['Young', 'Mid-Age', 'Experienced', 'Senior', 'Elderly']
+    age_bins = [0, 25, 40, 55, 70, 100]  # Define bins
+    age_labels = [0, 1, 2, 3, 4]         # Define labels
+
     train_df['Age_Group'] = pd.cut(
-    train_df['Age at Injury'], bins=age_bins, labels=age_labels, right=False
-    ).cat.codes
+        train_df['Age at Injury'], bins=age_bins, labels=age_labels, right=False, include_lowest=True
+    ).astype('category').cat.codes
+
     test_df['Age_Group'] = pd.cut(
-        test_df['Age at Injury'], bins=age_bins, labels=age_labels, right=False
-    ).cat.codes
+        test_df['Age at Injury'], bins=age_bins, labels=age_labels, right=False, include_lowest=True
+    ).astype('category').cat.codes
+
+    
 
 
 def target_decoder():

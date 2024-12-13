@@ -91,34 +91,43 @@ def plot_importance(coef,name):
 
 
 def check_performace(model,X,y,features_to_scale,n_folds = 5):
-    if True:
-        return
-    
-    K_fold = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+
+    K_fold = StratifiedKFold(n_splits=n_folds, shuffle=True)
 
     fold = 1
+
+    avg_train = []
+    avg_val = []
 
     for train_index, val_index in K_fold.split(X, y):
         X_train, X_val = X.iloc[train_index], X.iloc[val_index]
         y_train, y_val = y.iloc[train_index], y.iloc[val_index]
     
+        X_train, X_val = apply_frequency_encoding(X_train, X_val)
+
+        NA_imputer(X_train,X_val)
+        create_new_features(X_train,X_val)
+
         scaler = StandardScaler().fit(X_train[features_to_scale])
         X_train[features_to_scale]  = scaler.transform(X_train[features_to_scale])
         X_val[features_to_scale]  = scaler.transform(X_val[features_to_scale])  
 
-        to_impute = ["Average Weekly Wage","Industry Code"]
-        imputer = KNNImputer(n_neighbors=3)
-        X_train[to_impute] = imputer.fit_transform(X_train[to_impute])
-        X_val[to_impute] = imputer.transform(X_val[to_impute])
-
-        smote = SMOTE(random_state=42)
-        X_train, y_train = smote.fit_resample(X_train, y_train)    
-    
         model.fit(X_train, y_train)
     
-        # Model that can find classes with very low data
-
+        y_train_pred = model.predict(X_train)
         y_val_pred = model.predict(X_val)
-        f1 = f1_score(y_val, y_val_pred, average='macro')
-        print(f"Fold {fold} validation F1 score: {f1:.4f}")
+        
+        f1_train = f1_score(y_train, y_train_pred, average='macro')
+        f1_val = f1_score(y_val, y_val_pred, average='macro')
+        
+        avg_train.append(f1_train)
+        avg_val.append(f1_val)
+
+        print(f"Fold {fold} train F1 score: {f1_train:.4f}")
+        print(f"Fold {fold} validation F1 score: {f1_val:.4f}")
+
         fold += 1
+
+    print(f"Average Train F1 score: {sum(avg_train)/len(avg_train)}")
+    print(f"Average Validation F1 score: {sum(avg_val)/len(avg_val)}")
+
