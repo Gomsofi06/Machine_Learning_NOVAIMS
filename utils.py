@@ -21,45 +21,51 @@ custom_cmap = LinearSegmentedColormap.from_list("custom_gradient", ['#568789', '
 
 # Visualizations
 
-def plot_categorical_features(df, categorical_features, max_categories=10):
-    # Get number of unique values for each feature, sorted for a cleaner layout
-    unique_counts = df[categorical_features].nunique().sort_values(ascending=True)
-    print("Number of unique values in each feature:")
-    print(unique_counts)
+def plot_categorical_features(categorical_df, max_features_per_plot=6, figsize=(20, 15),
+                              exclude_features=['Carrier Name', 'County of Injury', 'Zip Code']):
+    feature_pairs = {
+        'WCIO Cause of Injury Code': 'WCIO Cause of Injury Description',
+        'WCIO Nature of Injury Code': 'WCIO Nature of Injury Description',
+        'WCIO Part Of Body Code': 'WCIO Part Of Body Description',
+        'Industry Code': 'Industry Code Description'
+    }
+    
+    filtered_features = [
+        feat for feat in categorical_df.columns 
+        if feat not in exclude_features and feat not in feature_pairs.values()
+    ]
 
-    # Determine the number of rows and columns for the subplot grid
-    num_features = len(categorical_features)
-    num_cols = 3  # Set to 3 columns per row
-    num_rows = (num_features + num_cols - 1) // num_cols  # Calculate required rows
+    num_features = len(filtered_features)
+    num_plots = (num_features + max_features_per_plot - 1) // max_features_per_plot
 
-    # Set up the figure and axes for subplots
-    fig, axes = plt.subplots(num_rows, num_cols, figsize=(18, num_rows * 5))
-    axes = axes.flatten()  # Flatten the axes array for easy iteration
+    for plot_idx in range(num_plots):
+        start_idx = plot_idx * max_features_per_plot
+        end_idx = min((plot_idx + 1) * max_features_per_plot, num_features)
+        current_features = filtered_features[start_idx:end_idx]
 
-    # Plot each feature on a separate subplot
-    for i, feature in enumerate(categorical_features):
-        ax = axes[i]
-        
-        # Get value counts for the current feature
-        value_counts = df[feature].value_counts()
-        
-        # Limit to top categories if needed
-        if len(value_counts) > max_categories:
-            value_counts = value_counts.head(max_categories)
-            ax.set_title(f'Top {max_categories} Categories in {feature}')
-        else:
-            ax.set_title(f'Distribution of {feature}')
-        
-        # Create the bar plot on the specified axis
-        sns.barplot(x=value_counts.values, y=value_counts.index, ax=ax)
-        ax.set_xlabel('Count')
+        fig, axes = plt.subplots(
+            nrows=(len(current_features) + 2) // 3,
+            ncols=3,
+            figsize=(20, 5 * ((len(current_features) + 2) // 3))
+        )
+        axes = axes.flatten()
 
-    # Hide any unused subplots (if num_features is not a perfect multiple of num_cols)
-    for j in range(i + 1, len(axes)):
-        fig.delaxes(axes[j])
+        for i, feature in enumerate(current_features):
+            value_counts = categorical_df[feature].value_counts()
+            title = feature
+            if len(value_counts) > 10:
+                value_counts = value_counts.head(10)  
+                title = f"{feature} (Top 10 Values)"
+            sns.barplot(x=value_counts.index, y=value_counts.values, color=plot_color, ax=axes[i])
+            axes[i].set_title(title)
+            axes[i].set_xticklabels(axes[i].get_xticklabels(), rotation=45, ha='right')
+            axes[i].set_xlabel(None)
 
-    plt.tight_layout()
-    plt.show()
+        for j in range(i + 1, len(axes)):
+            axes[j].axis('off')
+
+        plt.tight_layout()
+        plt.show()
 
 # Function to create bar plots for features with fewer unique values
 def plot_value_counts(df, features, max_categories=10, n_cols=2):
@@ -95,74 +101,41 @@ def plot_value_counts(df, features, max_categories=10, n_cols=2):
 
 
 def plot_cases_by_county(df_cleaned, shapefile_path='NY_counties/Counties.shp'):
-    """
-    Plots the number of cases by county in New York.
-
-    ----------------------------------------
-
-    Parameters:
-    - df_cleaned: DataFrame containing the injury data with a column 'County of Injury'.
-    - shapefile_path: Path to the New York counties shapefile.
-    - custom_cmap: Optional custom colormap (use default if None).
-    """
-    # Load New York counties shapefile
     ny_counties = gpd.read_file(shapefile_path)
     
-    # Create DataFrame with the number of cases per County
     cases_per_county_df = df_cleaned['County of Injury'].value_counts().reset_index()
     
-    # Rename columns
     cases_per_county_df.columns = ['NAME', 'Count']
     
-    # Capitalize the first letter of each entry in the 'NAME' column
     cases_per_county_df['NAME'] = cases_per_county_df['NAME'].str.capitalize()
     
-    # Merge the cases counts with the counties GeoDataFrame
     ny_counties = ny_counties.merge(cases_per_county_df, on='NAME', how='right')
     
-    # Plot
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     ny_counties.plot(column='Count', ax=ax, legend=True,
                      legend_kwds={'label': "Number of Cases by County",
                                   'orientation': "horizontal"},
                      cmap=custom_cmap)
     
-    # Remove x and y axis
     ax.set_axis_off()
     
     plt.title('Number of Cases by County')
     plt.show()
 
 def plot_distribution_and_boxplot(df, column_name, color='#568789'):
-    """
-    Function to plot both the distribution and boxplot of a specified column in a DataFrame.
-
-    Parameters:
-    df (pandas.DataFrame): DataFrame containing the data.
-    column_name (str): The name of the column to plot.
-    color (str): Color for the plots (default is '#568789').
-
-    Returns:
-    None
-    """
-    # Create a 1x2 subplot for both the distribution and boxplot
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Plot the distribution on the first axis (left)
     sns.histplot(df[column_name], kde=True, bins=30, color=color, ax=axes[0])
     axes[0].set_title(f"Distribution of {column_name}")
     axes[0].set_xlabel(column_name)
     axes[0].set_ylabel("Frequency")
 
-    # Plot the boxplot on the second axis (right)
     sns.boxplot(x=df[column_name], color=color, ax=axes[1])
     axes[1].set_title(f"Boxplot of {column_name}")
     axes[1].set_xlabel(column_name)
 
-    # Adjust the layout for better spacing
     plt.tight_layout()
 
-    # Show the plot
     plt.show()
 
 # Other
