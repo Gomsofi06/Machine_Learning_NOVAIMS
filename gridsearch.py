@@ -34,7 +34,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # Set the resources
-available_resources = {"cpu": 8, "gpu": 1} # change to match your resources
+available_resources = {"cpu": 8, "gpu": 0} # change to match your resources
 
 start = start_time = time.time()
 ray.init()
@@ -71,20 +71,16 @@ y_val_ray = ray.put(y_val)
 # Define the search space
 search_space = {
     # Model Dependent
-    "iterations": tune.grid_search([200, 500, 800, 1000, 1500, 2000]),  
-    "learning_rate": tune.grid_search([0.03, 0.05, 0.1, 0.15, 0.2,]),        
-    "depth": tune.grid_search([6, 8, 10]),           
-    "l2_leaf_reg": tune.grid_search([5, 10, 15]),                 
-    "bagging_temperature": tune.grid_search([0, 0.1, 0.5, 1]),         
-    "border_count": tune.grid_search([32, 64, 128]),    
-    "random_strength": tune.grid_search([0, 0.1, 0.5, 1]),              
-    "grow_policy": tune.grid_search(["SymmetricTree", "Depthwise"]), 
-    "min_data_in_leaf": tune.grid_search([1, 5, 10]),                  
-    "colsample_bylevel": tune.grid_search([0.5, 0.7, 0.9]),          
+    "iterations": tune.grid_search([300, 500, 800]),  
+    "learning_rate": tune.grid_search([0.03, 0.05, 0.1]),      
+    "depth": tune.grid_search([6, 8]),           
+    "l2_leaf_reg": tune.grid_search([5, 10]),                 
+    "bagging_temperature": tune.grid_search([0.1, 0.5, 1]),       
+    "grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
     
     # Always Use
     "use_SMOTE": tune.grid_search([True, False]),
-    "use_RandomUnderSampler": tune.grid_search([True, False]),
+    "use_RandomUnderSampler": tune.grid_search([True, False])
 }
 
 # Create Model
@@ -101,7 +97,6 @@ def CatBoosted_GridSearch(config):
     elif config["use_RandomUnderSampler"] and not config["use_SMOTE"]:
         rus = RandomUnderSampler()
         X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
-
     
     model = CatBoostClassifier(
         iterations=config["iterations"],
@@ -109,15 +104,12 @@ def CatBoosted_GridSearch(config):
         depth=config["depth"],
         l2_leaf_reg=config["l2_leaf_reg"],
         bagging_temperature=config["bagging_temperature"],
-        border_count=config["border_count"],
-        random_strength=config["random_strength"],
         grow_policy=config["grow_policy"],
-        min_data_in_leaf=config["min_data_in_leaf"],
-        colsample_bylevel=config["colsample_bylevel"],
         # -------------------
         loss_function="MultiClass", 
         eval_metric="MultiClass",  
         custom_metric='F1', 
+        early_stopping_rounds=50,
         verbose=0
     )
 
@@ -134,15 +126,14 @@ def CatBoosted_GridSearch(config):
 
 
 # Run Grid Search
+time_passed = (time.time() - start_time) / 60
+print("Starting Grid Search after:", time_passed, "minutes")
 analysis = tune.run(
     CatBoosted_GridSearch,
     config=search_space, 
     scheduler=ASHAScheduler(metric="f1_score", mode="max", grace_period=5),
-    checkpoint_at_end=True,
-    resume="AUTO",
-    #resources_per_trial=available_resources,
+    resources_per_trial=available_resources,
     trial_dirname_creator=custom_trial_dirname,
-    local_dir= "./GridSearch/Checkpoints",
     verbose=1
 )
 

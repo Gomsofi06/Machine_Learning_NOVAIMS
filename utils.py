@@ -611,20 +611,6 @@ def create_new_features(train_df, test_df):
     ).astype('category').cat.codes
 
 
-def target_decoder():
-    class_mapping = {
-        0:'1. CANCELLED', 
-        1:'2. NON-COMP',
-        2:'3. MED ONLY', 
-        3:'4. TEMPORARY',
-        4:'5. PPD SCH LOSS', 
-        5:'6. PPD NSL', 
-        6:'7. PTD', 
-        7:'8. DEATH'
-    }
-    return np.array(list(class_mapping.values()))
-
-
 def version_control():
 
     file_path = 'version.txt'
