@@ -4,6 +4,9 @@ import numpy as np
 from scipy import stats   
 from sklearn.metrics import f1_score
 
+import json
+import os
+
 # Visualization
 import geopandas as gpd
 import matplotlib.pyplot as plt 
@@ -501,3 +504,32 @@ def custom_trial_dirname(trial, ):
 def float_to_int(df, columns):
     for col in columns:
         df[col] = df[col].astype('Int64')
+
+
+# Function to get the current experiment count
+def get_experiment_count(file_name):
+    if not os.path.exists(file_name):
+        return 0
+    with open(file_name, "r") as file:
+        data = file.readlines()
+    return sum(1 for line in data if line.strip().startswith("{"))  # Count JSON objects
+
+def save_scores(model_name, best_config, best_f1_score):
+
+    # File name for saving results
+    file_name = "Runs.txt"
+
+    experiment_count = get_experiment_count(file_name) + 1
+
+    # Prepare data to save
+    output_data = {
+        "experiment_count": experiment_count,
+        "model_name": model_name,
+        "best_trial_config": best_config,
+        "best_f1_score": best_f1_score,
+    }
+
+    # Append the output to the file
+    with open(file_name, "a") as file:
+        file.write(json.dumps(output_data, indent=4))
+        file.write("\n\n")  # Add a blank line between runs for readability
