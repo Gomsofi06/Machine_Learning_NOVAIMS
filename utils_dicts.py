@@ -29,14 +29,12 @@ categorical_features = [
     'Age_Group',
 ]
 
-"""
 essential_features = [
     "IME-4 Count",
     "WCIO Nature of Injury Code",
     "Years Past Accident",
-    "Industry Code",
+    "Industry Code",    
     "Average Weekly Wage",
-    # Additional categorical features
     "Carrier Name",
     "Carrier Type",
     "County of Injury",
@@ -63,7 +61,6 @@ reduced_features = [
     "C-3 Date_Year",
     "First Hearing Date_Year",
     "First Hearing Date_Month"
-    # Additional categorical features
     "County of Injury",
     "District Name",
     "Industry Code",
@@ -80,7 +77,3 @@ reduced_features = [
     "Gender_M",
     "Weekend_Accident"
 ]
-
-
-all_features = numerical_features + categorical_features
-"""
