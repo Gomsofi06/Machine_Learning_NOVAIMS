@@ -570,17 +570,15 @@ def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
 def NA_imputer(train_df, test_df):
 
     columns = ["Age at Injury","Average Weekly Wage"]
-
     imputation_value  = train_df[columns].median()
+    
     for col in columns:
             train_df[col] = train_df[col].fillna(imputation_value[col])
             test_df[col] = test_df[col].fillna(imputation_value[col])
 
-    # Ensure 'Accident Date' is in datetime format
     train_df['Accident Date'] = pd.to_datetime(train_df['Accident Date'], errors='coerce')
     test_df['Accident Date'] = pd.to_datetime(test_df['Accident Date'], errors='coerce')
 
-    # Now apply your logic
     condition = train_df['Birth Year'].isna() & train_df['Age at Injury'].notna() & train_df['Accident Date'].notna()
     train_df.loc[condition, 'Birth Year'] = train_df.loc[condition, 'Accident Date'].dt.year - train_df.loc[condition, 'Age at Injury']
 
@@ -612,8 +610,6 @@ def create_new_features(train_df, test_df):
     test_df['Age_Group'] = pd.cut(
         test_df['Age at Injury'], bins=age_bins, labels=age_labels, right=False, include_lowest=True
     ).astype('category').cat.codes
-
-    
 
 
 def target_decoder():
@@ -682,3 +678,5 @@ def save_scores(model_name, best_config, best_f1_score):
     with open(file_name, "a") as file:
         file.write(json.dumps(output_data, indent=4))
         file.write("\n\n")  # Add a blank line between runs for readability
+
+

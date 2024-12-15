@@ -113,8 +113,6 @@ def check_performace(model,X,y,features_to_scale,n_folds = 5):
         X_train[features_to_scale]  = scaler.transform(X_train[features_to_scale])
         X_val[features_to_scale]  = scaler.transform(X_val[features_to_scale])  
 
-        # implement FS
-
         model.fit(X_train, y_train)
     
         y_train_pred = model.predict(X_train)
