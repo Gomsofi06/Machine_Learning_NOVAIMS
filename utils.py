@@ -13,6 +13,7 @@ from matplotlib.colors import LinearSegmentedColormap
 # Others
 import holidays
 from sklearn.preprocessing import OneHotEncoder
+from scipy.cluster.hierarchy import linkage, dendrogram
 
 
 # Color of plots
@@ -20,6 +21,130 @@ plot_color = '#568789'
 custom_cmap = LinearSegmentedColormap.from_list("custom_gradient", ['#568789', '#efb440'])
 
 # Visualizations
+
+def plot_missing_values_dendrogram(df, figsize=(10, 6), leaf_rotation=90, leaf_font_size=10, title='Dendrogram of Missing Values'):
+    missing_matrix = df.isnull().astype(int)
+    
+    linkage_matrix = linkage(missing_matrix.T, method='ward', metric='euclidean')
+    
+    plt.figure(figsize=figsize)
+    dendrogram(
+        linkage_matrix,
+        labels=missing_matrix.columns,
+        leaf_rotation=leaf_rotation,
+        leaf_font_size=leaf_font_size
+    )
+    
+    plt.title(title)
+    plt.xlabel('Features')
+    plt.ylabel('Euclidean Distance')
+    
+    plt.tight_layout()
+    plt.show()
+
+def plot_numerical_features(df, numerical_features, figsize=(15, 5), plot_color=plot_color):
+    fig, axes = plt.subplots(len(numerical_features), 2, figsize=(figsize[0], figsize[1] * len(numerical_features)))
+    fig.suptitle('Distribution of Numerical Features', fontsize=16, y=1.02)
+
+    for idx, feature in enumerate(numerical_features):
+        # Histogram with KDE
+        sns.histplot(data=df, x=feature, kde=True, ax=axes[idx, 0], color=plot_color)
+        axes[idx, 0].set_title(f'Distribution of {feature}')
+        axes[idx, 0].set_xlabel(feature)
+
+        # Box plot
+        sns.boxplot(data=df, y=feature, ax=axes[idx, 1], color=plot_color)
+        axes[idx, 1].set_title(f'Box Plot of {feature}')
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_feature_distribution(df, feature, figsize=(15, 5), plot_color=plot_color, xlim=(0, 1500)):
+
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    fig.suptitle(f'Distribution Analysis of {feature}', fontsize=16, y=1.02)
+
+    sns.histplot(data=df, x=feature, kde=False, ax=axes[0], color=plot_color)
+    axes[0].set_title(f'Distribution of {feature}')
+    axes[0].set_xlabel(feature)
+
+    axes[0].set_xlim(xlim)  
+
+    sns.boxplot(data=df, y=feature, ax=axes[1], color=plot_color)
+    axes[1].set_title(f'Box Plot of {feature}')
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_correlation_heatmap(df, 
+                              figsize=(10, 8), 
+                              title='Correlation Heatmap of Numerical Features', 
+                              custom_cmap=None, 
+                              center=0, 
+                              fmt='.2f', 
+                              cbar_shrink=0.8):
+    
+    plt.figure(figsize=figsize)
+    
+    correlation_matrix = df.corr()
+    
+    if custom_cmap is None:
+        custom_cmap = plt.cm.coolwarm
+    
+    sns.heatmap(correlation_matrix,
+                annot=True,
+                cmap=custom_cmap,
+                center=center,
+                fmt=fmt,
+                cbar_kws={"shrink": cbar_shrink})
+    
+    plt.title(title)
+    
+    plt.tight_layout()
+    plt.show()
+
+def plot_feature_relationships(df, feature_pairs, figsize=(15, 15), plot_color=plot_color):
+    n_plots = len(feature_pairs)
+    n_rows = (n_plots + 1) // 2  
+    n_cols = 2 if n_plots > 1 else 1
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize)
+    fig.suptitle('Key Feature Relationships', fontsize=16, y=1.02)
+    
+    if n_rows * n_cols > 1:
+        axes = axes.flatten()
+    else:
+        axes = [axes]
+    
+    for i, (x_feature, y_feature) in enumerate(feature_pairs):
+        sns.scatterplot(data=df, 
+                        x=x_feature, 
+                        y=y_feature, 
+                        ax=axes[i],
+                        color=plot_color)
+        axes[i].set_title(f'{x_feature} vs {y_feature}')
+    
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+    
+    plt.tight_layout()
+    plt.show()
+
+def plot_top_categorical_values(df, features, top_n=10, figsize=(10, 6), plot_color=plot_color):
+    for feature in features:
+        if feature in df.columns:  # Check if the feature exists in the DataFrame
+            # Get the top N values for the feature
+            top_values = df[feature].value_counts().head(top_n)
+
+            # Create a bar plot
+            plt.figure(figsize=figsize)
+            sns.barplot(x=top_values.values, y=top_values.index, color=plot_color)
+            plt.title(f'Top {top_n} Most Frequent Values in {feature}')
+            plt.xlabel('Frequency')
+            plt.ylabel(feature)
+            plt.show()
+        else:
+            print(f"Warning: Feature '{feature}' not found in the DataFrame.")
 
 def plot_categorical_features(categorical_df, max_features_per_plot=6, figsize=(20, 15),
                               exclude_features=['Carrier Name', 'County of Injury', 'Zip Code']):
@@ -136,6 +261,30 @@ def plot_distribution_and_boxplot(df, column_name, color='#568789'):
 
     plt.tight_layout()
 
+    plt.show()
+
+def plot_claim_counts_heatmap(df, 
+                               date_column='Accident Date', 
+                               figsize=(10, 8), 
+                               title='Claim Counts by Year and Month', 
+                               ):
+    
+    df['Accident Year'] = df[date_column].dt.year
+    df['Accident Month'] = df[date_column].dt.month
+    
+    claim_counts = df.groupby(['Accident Year', 'Accident Month']).size().unstack(fill_value=0)
+    
+    claim_counts.index = claim_counts.index.astype(int)
+    claim_counts.columns = claim_counts.columns.astype(int) 
+    
+    plt.figure(figsize=figsize)
+    sns.heatmap(claim_counts, annot=False, cmap=custom_cmap)
+    
+    plt.title(title)
+    plt.xlabel('Accident Month')
+    plt.ylabel('Accident Year')
+    
+    plt.tight_layout()
     plt.show()
 
 # Other
