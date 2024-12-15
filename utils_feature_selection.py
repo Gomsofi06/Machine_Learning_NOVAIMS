@@ -91,7 +91,7 @@ def plot_importance(coef,name):
     plt.show()
 
 
-def check_performace(model,X,y,features_to_scale,n_folds = 5):
+def check_performace(model,X,y,features_to_scale,feature_selection,n_folds = 5):
 
     K_fold = StratifiedKFold(n_splits=n_folds, shuffle=True)
 
@@ -112,6 +112,13 @@ def check_performace(model,X,y,features_to_scale,n_folds = 5):
         scaler = StandardScaler().fit(X_train[features_to_scale])
         X_train[features_to_scale]  = scaler.transform(X_train[features_to_scale])
         X_val[features_to_scale]  = scaler.transform(X_val[features_to_scale])  
+
+        drop_list = []
+        for col in X_train.columns:
+            if col not in feature_selection:
+                drop_list.append(col)
+        X_train = X_train.drop(drop_list, axis=1)
+        X_val = X_val.drop(drop_list, axis=1)
 
         model.fit(X_train, y_train)
     

@@ -571,7 +571,6 @@ def NA_imputer(train_df, test_df):
 
     columns = ["Age at Injury","Average Weekly Wage"]
     imputation_value  = train_df[columns].median()
-    
     for col in columns:
             train_df[col] = train_df[col].fillna(imputation_value[col])
             test_df[col] = test_df[col].fillna(imputation_value[col])
