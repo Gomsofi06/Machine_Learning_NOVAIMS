@@ -68,19 +68,20 @@ X_val_ray = ray.put(X_val)
 y_val_ray = ray.put(y_val)
 
 
-# Define the search space
 search_space = {
     # Model Dependent
-    "iterations": tune.grid_search([300, 500, 800]),  
-    "learning_rate": tune.grid_search([0.03, 0.05, 0.1]),      
-    "depth": tune.grid_search([6, 8]),           
-    "l2_leaf_reg": tune.grid_search([5, 10]),                 
-    "bagging_temperature": tune.grid_search([0.1, 0.5, 1]),       
-    "grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
+    "n_estimators": tune.grid_search([100, 200, 300]),         
+    "learning_rate": tune.grid_search([0.01, 0.05, 0.1]),     
+    "max_depth": tune.grid_search([5, 7]),                              
+    "subsample": tune.grid_search([0.6, 0.9]),            
+    "colsample_bytree": tune.grid_search([0.6, 0.9]),
+    "reg_lambda": tune.grid_search([1, 10, 100]),     
+    "gamma": tune.grid_search([0.1, 0.3]),      #[0, 0.1, 0.3]            
+    "grow_policy": tune.grid_search(["depthwise", "lossguide"])
     
     # Always Use
-    "use_SMOTE": tune.grid_search([True, False]),
-    "use_RandomUnderSampler": tune.grid_search([True, False])
+    #,"use_SMOTE": tune.grid_search([True, False]),
+    #"use_RandomUnderSampler": tune.grid_search([True, False])
 }
 
 # Create Model
@@ -91,25 +92,28 @@ def XGBBoosted_GridSearch(config):
     y_val_gridsearch = ray.get(y_val_ray)
 
     # SMOTE or RandomUnderSampling
-    if config["use_SMOTE"] and not config["use_RandomUnderSampler"]:
-        smote = SMOTE()
-        X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    elif config["use_RandomUnderSampler"] and not config["use_SMOTE"]:
-        rus = RandomUnderSampler()
-        X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    #if config["use_SMOTE"] and not config["use_RandomUnderSampler"]:
+    #    smote = SMOTE()
+    #    X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    #elif config["use_RandomUnderSampler"] and not config["use_SMOTE"]:
+    #    rus = RandomUnderSampler()
+    #    X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
     
-    model = CatBoostClassifier(
-        iterations=config["iterations"],
-        learning_rate=config["learning_rate"],
-        depth=config["depth"],
-        l2_leaf_reg=config["l2_leaf_reg"],
-        bagging_temperature=config["bagging_temperature"],
-        grow_policy=config["grow_policy"],
-        # -------------------
-        custom_metric='F1', 
-        early_stopping_rounds=50,
-        verbose=0
-    )
+    model = XGBClassifier(
+                        n_estimators=config["n_estimators"],        
+                        learning_rate=config["learning_rate"],      
+                        max_depth=config["max_depth"],                          
+                        subsample=config["subsample"],              
+                        colsample_bytree=config["colsample_bytree"],
+                        reg_lambda=config["reg_lambda"],
+                        gamma=config["gamma"],                      
+                        grow_policy=config["grow_policy"],          
+                        objective="multi:softmax",                  
+                        num_class=8,                                
+                        eval_metric="merror",                       
+                        early_stopping_rounds=50,                   
+                        verbosity=0                                 
+                    )
 
     model.fit(X_train_gridsearch,y_train_gridsearch)
     
@@ -127,7 +131,7 @@ def XGBBoosted_GridSearch(config):
 time_passed = (time.time() - start_time) / 60
 print("Starting Grid Search after:", time_passed, "minutes")
 analysis = tune.run(
-    CatBoosted_GridSearch,
+    XGBBoosted_GridSearch,
     config=search_space, 
     scheduler=ASHAScheduler(metric="f1_score", mode="max", grace_period=5),
     resources_per_trial=available_resources,

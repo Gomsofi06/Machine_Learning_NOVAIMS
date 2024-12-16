@@ -72,15 +72,15 @@ y_val_ray = ray.put(y_val)
 search_space = {
     # Model Dependent
     "iterations": tune.grid_search([300, 500, 800]),  
-    "learning_rate": tune.grid_search([0.03, 0.05, 0.1]),      
-    "depth": tune.grid_search([6, 8]),           
-    "l2_leaf_reg": tune.grid_search([5, 10]),                 
-    "bagging_temperature": tune.grid_search([0.1, 0.5, 1]),       
+    "learning_rate": tune.grid_search([0.01, 0.03, 0.1]),  
+    "depth": tune.grid_search([4, 7]),           
+    "l2_leaf_reg": tune.grid_search([3, 5, 10]),                 
+    "bagging_temperature": tune.grid_search([0.2, 0.5, 1]),       
     "grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
     
     # Always Use
-    "use_SMOTE": tune.grid_search([True, False]),
-    "use_RandomUnderSampler": tune.grid_search([True, False])
+    #"use_SMOTE": tune.grid_search([True, False]),
+    #"use_RandomUnderSampler": tune.grid_search([True, False])
 }
 
 # Create Model
@@ -91,14 +91,15 @@ def CatBoosted_GridSearch(config):
     y_val_gridsearch = ray.get(y_val_ray)
 
     # SMOTE or RandomUnderSampling
-    if config["use_SMOTE"] and not config["use_RandomUnderSampler"]:
-        smote = SMOTE()
-        X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    elif config["use_RandomUnderSampler"] and not config["use_SMOTE"]:
-        rus = RandomUnderSampler()
-        X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    #if config["use_SMOTE"] and not config["use_RandomUnderSampler"]:
+    #    smote = SMOTE()
+    #    X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    #elif config["use_RandomUnderSampler"] and not config["use_SMOTE"]:
+    #    rus = RandomUnderSampler()
+    #    X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
     
-    #Remode AWW
+    X_train_gridsearch = X_train_gridsearch.drop("Average Weekly Wage", axis = 1)
+    X_val_gridsearch = X_val_gridsearch.drop("Average Weekly Wage", axis = 1)
 
     model = CatBoostClassifier(
         iterations=config["iterations"],
