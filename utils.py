@@ -467,8 +467,7 @@ def apply_frequency_encoding(df, test_df=None):
         test_df = test_df.drop(columns=frequency_encoder_vars) 
     return df, test_df
 
-
-def apply_one_hot_encoding(df, features):
+def apply_one_hot_encoding(train_df, other_df, features):
     """
     Applies one-hot encoding to the specified features in the DataFrame.
 
@@ -484,16 +483,19 @@ def apply_one_hot_encoding(df, features):
     oh_enc = OneHotEncoder(drop='first', sparse_output=False)
     
     # Fit and transform the selected features
-    encoded_features = oh_enc.fit_transform(df[features]).astype(int)
+    train_encoded_features = oh_enc.fit_transform(train_df[features]).astype(int)
+    other_encoded_features = oh_enc.transform(other_df[features]).astype(int)
     
     # Create a new DataFrame for the encoded features
     encoded_feature_names = oh_enc.get_feature_names_out(features)
-    encoded_df = pd.DataFrame(encoded_features, columns=encoded_feature_names, index=df.index)
+    train_encoded_df = pd.DataFrame(train_encoded_features, columns=encoded_feature_names, index=train_df.index)
+    other_encoded_df = pd.DataFrame(other_encoded_features, columns=encoded_feature_names, index=other_df.index)
     
     # Combine the encoded features with the original DataFrame (dropping the original columns)
-    df_encoded = pd.concat([df.drop(columns=features), encoded_df], axis=1)
+    new_train = pd.concat([train_df.drop(columns=features), train_encoded_df], axis=1)
+    new_other = pd.concat([train_df.drop(columns=features), train_encoded_df], axis=1)
     
-    return df_encoded
+    return new_train, new_other
 
 
 def categorize_impact(impact):
