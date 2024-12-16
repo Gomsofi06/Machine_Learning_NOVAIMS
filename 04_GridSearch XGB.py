@@ -84,7 +84,7 @@ search_space = {
 }
 
 # Create Model
-def CatBoosted_GridSearch(config):
+def XGBBoosted_GridSearch(config):
     X_train_gridsearch = ray.get(X_train_ray)
     y_train_gridsearch = ray.get(y_train_ray)
     X_val_gridsearch = ray.get(X_val_ray)
@@ -98,8 +98,6 @@ def CatBoosted_GridSearch(config):
         rus = RandomUnderSampler()
         X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
     
-    #Remode AWW
-
     model = CatBoostClassifier(
         iterations=config["iterations"],
         learning_rate=config["learning_rate"],
