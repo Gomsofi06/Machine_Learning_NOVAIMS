@@ -2,6 +2,9 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
+import pandas as pd
+
+
 def get_session_state():
     """
     Utility function to retrieve the Streamlit session state.
@@ -80,6 +83,66 @@ class GrantApp:
             </p>
             """, unsafe_allow_html=True 
         )
+
+        # Use the option menu for selection
+        selected = option_menu(
+            "Select Input Method", 
+            ["Input Manually", "Upload CSV"], 
+            menu_icon="cast", default_index=0
+        )
+
+        if selected == "Upload CSV":
+            # Style the instruction for the CSV upload using Markdown
+            st.markdown('<p style="color: #465e54; font-size: 20px;">Choose a CSV file to upload:</p>', unsafe_allow_html=True)
+            
+            # CSV Upload Section
+            uploaded_csv = st.file_uploader("", type="csv")
+
+            # Check if the user has uploaded a file
+            if uploaded_csv is not None:
+                try:
+                    # Read the file into a Pandas DataFrame
+                    data = pd.read_csv(uploaded_csv)
+                    st.success("File uploaded successfully!")
+
+                    # Display the first few rows of the file
+                    st.markdown('<p style="color: #465e54; font-size: 20px;">Here is a preview of your uploaded CSV:</p>', unsafe_allow_html=True)
+                    st.dataframe(data)
+
+                    # Additional processing (optional)
+                    st.markdown(f'<p style="color: #465e54; font-size: 16px;">The CSV has {data.shape[0]} rows and {data.shape[1]} columns.</p>', unsafe_allow_html=True)
+
+                except Exception as e:
+                    st.markdown(f'<p style="color: red; font-size: 16px;">An error occurred while reading the file: {e}</p>', unsafe_allow_html=True)
+
+        elif selected == "Input Manually":
+            # Style the text with color and font size using Markdown (HTML inside)
+            st.markdown('<p style="color: #465e54; font-size: 20px;">Enter data manually, one row per line.</p>', unsafe_allow_html=True)
+            st.markdown('<p style="color: #465e54; font-size: 15;">Enter data (comma separated)</p>', unsafe_allow_html=True)
+            
+            # Input text area for data entry (assuming CSV-like input for simplicity)
+            data_input = st.text_area("", height=200)
+            
+            if data_input:
+                # Parse the text into a DataFrame
+                try:
+                    # Split the input into lines and columns to create a list of rows
+                    rows = [line.split(',') for line in data_input.strip().split('\n')]
+                    columns = [f"Column {i+1}" for i in range(len(rows[0]))]
+                    
+                    # Create DataFrame
+                    data_manual = pd.DataFrame(rows, columns=columns)
+                    st.success("Data entered successfully!")
+
+                    # Display the entered data
+                    st.markdown('<p style="color: #465e54; font-size: 20px;">Here is the manually entered data:</p>', unsafe_allow_html=True)
+                    st.dataframe(data_manual)
+
+                    # Additional processing (optional)
+                    st.markdown(f'<p style="color: #465e54; font-size: 16px;">The entered data has {data_manual.shape[0]} rows and {data_manual.shape[1]} columns.</p>', unsafe_allow_html=True)
+
+                except Exception as e:
+                    st.markdown(f'<p style="color: red; font-size: 16px;">An error occurred while processing the input data: {e}</p>', unsafe_allow_html=True)
 
 
     def run(self):
