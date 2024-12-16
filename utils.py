@@ -493,7 +493,7 @@ def apply_one_hot_encoding(train_df, other_df, features):
     
     # Combine the encoded features with the original DataFrame (dropping the original columns)
     new_train = pd.concat([train_df.drop(columns=features), train_encoded_df], axis=1)
-    new_other = pd.concat([train_df.drop(columns=features), train_encoded_df], axis=1)
+    new_other = pd.concat([other_df.drop(columns=features), train_encoded_df], axis=1)
     
     return new_train, new_other
 
