@@ -20,6 +20,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
+from sklearn.base import clone
 
 # embedded methods
 from sklearn.linear_model import LassoCV
@@ -91,7 +92,7 @@ def plot_importance(coef,name):
     plt.show()
 
 
-def check_performace(model,X,y,features_to_scale,feature_selection,n_folds = 5):
+def check_performace(model_copy,X,y,features_to_scale,feature_selection,n_folds = 5):
 
     K_fold = StratifiedKFold(n_splits=n_folds, shuffle=True)
 
@@ -99,7 +100,7 @@ def check_performace(model,X,y,features_to_scale,feature_selection,n_folds = 5):
 
     avg_train = []
     avg_val = []
-
+    model = clone(model_copy)
     for train_index, val_index in K_fold.split(X, y):
         X_train, X_val = X.iloc[train_index], X.iloc[val_index]
         y_train, y_val = y.iloc[train_index], y.iloc[val_index]
@@ -113,12 +114,13 @@ def check_performace(model,X,y,features_to_scale,feature_selection,n_folds = 5):
         X_train[features_to_scale]  = scaler.transform(X_train[features_to_scale])
         X_val[features_to_scale]  = scaler.transform(X_val[features_to_scale])  
 
-        drop_list = []
-        for col in X_train.columns:
-            if col not in feature_selection:
-                drop_list.append(col)
-        X_train = X_train.drop(drop_list, axis=1)
-        X_val = X_val.drop(drop_list, axis=1)
+        if feature_selection != []:
+            drop_list = []
+            for col in X_train.columns:
+                if col not in feature_selection:
+                    drop_list.append(col)
+            X_train = X_train.drop(drop_list, axis=1)
+            X_val = X_val.drop(drop_list, axis=1)
 
         model.fit(X_train, y_train)
     
@@ -133,6 +135,7 @@ def check_performace(model,X,y,features_to_scale,feature_selection,n_folds = 5):
 
         print(f"Fold {fold} train F1 score: {f1_train:.4f}")
         print(f"Fold {fold} validation F1 score: {f1_val:.4f}")
+        print(f"------------------------------")
 
         fold += 1
 
