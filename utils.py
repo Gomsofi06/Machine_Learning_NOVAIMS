@@ -637,7 +637,7 @@ def get_experiment_count(file_name):
         data = file.readlines()
     return sum(1 for line in data if line.strip().startswith("{"))  # Count JSON objects
 
-def save_scores(model_name, best_config, best_f1_score):
+def save_scores(model_name, best_config, best_f1_score, hours_passed):
 
     # File name for saving results
     file_name = "Runs.txt"
@@ -650,6 +650,7 @@ def save_scores(model_name, best_config, best_f1_score):
         "model_name": model_name,
         "best_trial_config": best_config,
         "best_f1_score": best_f1_score,
+        "time":hours_passed
     }
 
     # Append the output to the file

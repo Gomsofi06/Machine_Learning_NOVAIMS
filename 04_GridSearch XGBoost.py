@@ -48,7 +48,7 @@ X = train_df.drop(["Claim Injury Type Encoded"], axis = 1)
 y = train_df["Claim Injury Type Encoded"]
 
 # Split the data
-X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.75, stratify = y, shuffle = True)
+X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.25, stratify = y, shuffle = True)
 
 
 # Preprocess the data
@@ -71,17 +71,16 @@ y_val_ray = ray.put(y_val)
 search_space = {
     # Model Dependent
     "n_estimators": tune.grid_search([100, 200, 300]),         
-    "learning_rate": tune.grid_search([0.01, 0.05, 0.1]),     
+    "learning_rate": tune.grid_search([0.01, 0.05, 0.1, 1.5]),     
     "max_depth": tune.grid_search([5, 7]),                              
     "subsample": tune.grid_search([0.6, 0.9]),            
     "colsample_bytree": tune.grid_search([0.6, 0.9]),
     "reg_lambda": tune.grid_search([1, 10, 100]),     
-    "gamma": tune.grid_search([0.1, 0.3]),      #[0, 0.1, 0.3]            
-    "grow_policy": tune.grid_search(["depthwise", "lossguide"])
+    "gamma": tune.grid_search([0, 0.1, 0.3]),      #[0, 0.1, 0.3]            
+    "grow_policy": tune.grid_search(["depthwise", "lossguide"]),
     
     # Always Use
-    #,"use_SMOTE": tune.grid_search([True, False]),
-    #"use_RandomUnderSampler": tune.grid_search([True, False])
+    "use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"])
 }
 
 # Create Model
@@ -92,12 +91,12 @@ def XGBBoosted_GridSearch(config):
     y_val_gridsearch = ray.get(y_val_ray)
 
     # SMOTE or RandomUnderSampling
-    #if config["use_SMOTE"] and not config["use_RandomUnderSampler"]:
-    #    smote = SMOTE()
-    #    X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    #elif config["use_RandomUnderSampler"] and not config["use_SMOTE"]:
-    #    rus = RandomUnderSampler()
-    #    X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    if "use_SMOTE or use_RandomUnderSampler" == "SMOTE":
+        smote = SMOTE()
+        X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
+        rus = RandomUnderSampler()
+        X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
     
     model = XGBClassifier(
                         n_estimators=config["n_estimators"],        
@@ -144,11 +143,11 @@ best_trial = analysis.get_best_trial(metric="f1_score", mode="max")
 print("Best trial config: ", best_trial.config)
 print("Best trial final F1 score: ", best_trial.last_result["f1_score"])
 
-save_scores("CatBoost", best_trial.config, best_trial.last_result["f1_score"])
-
 end_time = time.time()
 hours_passed = (end_time - start_time) / 3600
 print(f"It took {hours_passed:.2f} hours")
 
 total_trials = len(analysis.trials)
 print(f"Total number of trials: {total_trials}")
+
+save_scores("XGBoost", best_trial.config, best_trial.last_result["f1_score"], hours_passed)
