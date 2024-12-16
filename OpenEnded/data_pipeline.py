@@ -100,5 +100,7 @@ def pipeline(df):
 
     # Feature Encoding
 
+    # Imputation that happen after data split (maybe create another function?)
+    
     # Columns Selection
 
