@@ -26,54 +26,19 @@ categorical_features = [
     
     'Relative_Wage',
     'Financial Impact Category',
-    'Age_Group',
+    'Age_Group'
 ]
 
 essential_features = [
-    "IME-4 Count",
-    "WCIO Nature of Injury Code",
-    "Years Past Accident",
-    "Industry Code",    
-    "Average Weekly Wage",
-    "Carrier Name",
-    "Carrier Type",
-    "County of Injury",
-    "District Name",
-    "Gender",
-    "Medical Fee Region",
-    "Attorney/Representative",
-    "COVID-19 Indicator",
-    "First Hearing Date Occurred",
-    "C-2 Date Occurred",
-    "C-3 Date Occurred",
-    "Birth Year Occurred",
-    "Age at Injury Occurred",
-    "Accident Date Occurred"
+    'Average Weekly Wage','IME-4 Count','Days_to_First_Hearing',
+    'C-2 Date_Year','Accident Date_Year','Assembly Date_Year',
+    'Attorney/Representative_Y',
+    'Enc WCIO Nature of Injury Code',
+    'Relative_Wage'
 ]
 
-reduced_features = [
-    "Age at Injury",
-    "IME-4 Count",
-    "Days_to_First_Hearing",
-    "Average Weekly Wage",
-    "Birth Year",
-    "C-2 Date_Year",
-    "C-3 Date_Year",
-    "First Hearing Date_Year",
-    "First Hearing Date_Month"
-    "County of Injury",
-    "District Name",
-    "Industry Code",
-    "Medical Fee Region",
-    "Attorney/Representative",
-    "COVID-19 Indicator",
-    "Known C-2 Date",
-    "Known C-3 Date",
-    "Known First Hearing Date",
-    "Accident Date_Year",
-    "Accident Date_Month",
-    "Accident Date_Day",
-    "Gender_F",
-    "Gender_M",
-    "Weekend_Accident"
+reduced_features = essential_features + [
+    "Age at Injury", "Days_to_C2", "Days_to_C3", "C-2 Date_Day", "C-2 Date_DayOfWeek", 
+    "C-3 Date_Day", "C-3 Date_Month", "C-3 Date_Year", "First Hearing Date_Day", "First Hearing Date_Month", "First Hearing Date_Year",
+    "First Hearing Date_DayOfWeek", "Accident Date_Month"
 ]
