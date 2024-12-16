@@ -30,7 +30,7 @@ categorical_features = [
 ]
 
 essential_features = [
-    'Average Weekly Wage','IME-4 Count','Days_to_First_Hearing',
+    'IME-4 Count','Days_to_First_Hearing',
     'C-2 Date_Year','Accident Date_Year','Assembly Date_Year',
     'Attorney/Representative_Y',
     'Enc WCIO Nature of Injury Code',

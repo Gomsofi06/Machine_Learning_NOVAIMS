@@ -20,7 +20,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
-from sklearn.base import clone
 
 # embedded methods
 from sklearn.linear_model import LassoCV
@@ -100,7 +99,7 @@ def check_performace(model_copy,X,y,features_to_scale,feature_selection,n_folds 
 
     avg_train = []
     avg_val = []
-    model = clone(model_copy)
+    model = model_copy
     for train_index, val_index in K_fold.split(X, y):
         X_train, X_val = X.iloc[train_index], X.iloc[val_index]
         y_train, y_val = y.iloc[train_index], y.iloc[val_index]
@@ -114,13 +113,14 @@ def check_performace(model_copy,X,y,features_to_scale,feature_selection,n_folds 
         X_train[features_to_scale]  = scaler.transform(X_train[features_to_scale])
         X_val[features_to_scale]  = scaler.transform(X_val[features_to_scale])  
 
+
+        drop_list = ["Average Weekly Wage"]
         if feature_selection != []:
-            drop_list = []
             for col in X_train.columns:
                 if col not in feature_selection:
                     drop_list.append(col)
-            X_train = X_train.drop(drop_list, axis=1)
-            X_val = X_val.drop(drop_list, axis=1)
+        X_train = X_train.drop(drop_list, axis=1)
+        X_val = X_val.drop(drop_list, axis=1)
 
         model.fit(X_train, y_train)
     
