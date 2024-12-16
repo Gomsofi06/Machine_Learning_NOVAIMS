@@ -419,37 +419,28 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def frequency_encoding(df, column_name, test_df=None, verbose= False):
+def frequency_encoding(df, column_name, test_df, verbose= False):
 
     new_column_name = f"Enc {column_name}"
 
     df[column_name] = df[column_name].fillna("Unknown")
-    if test_df is not None:
-        test_df[column_name] = test_df[column_name].fillna("Unknown")
+    test_df[column_name] = test_df[column_name].fillna("Unknown")
     
     value_counts = df[column_name].value_counts()
+    total_length = len(df)
 
-    frequency_groups = value_counts.groupby(value_counts).apply(lambda x: x.index.tolist()).to_dict()
+    freq_mapping = (value_counts / total_length).to_dict()
 
-    duplicate_counts = {freq: values for freq, values in frequency_groups.items() if len(values) > 1}
+    default_value = 0 
+    freq_mapping = {k: v for k, v in freq_mapping.items()} 
+    freq_mapping["Unknown"] = freq_mapping.get("Unknown", default_value)
 
-    if verbose:
-        if duplicate_counts:
-            print("Some values have the same frequency.")
-        else:
-            print("No values have the same frequency. Mapping frequencies to new column.")
-    
-    # Map categories to frequency values
-    df[new_column_name] = df[column_name].map(value_counts / len(df))
-
-    # Apply the same transformation to test_df if provided
-    if test_df is not None:
-        test_df[new_column_name] = test_df[column_name].map(value_counts / len(df))
+    df[new_column_name] = df[column_name].map(freq_mapping)
+    test_df[new_column_name] = test_df[column_name].map(freq_mapping).fillna(default_value)
 
 
-def apply_frequency_encoding(df, test_df=None):
+def apply_frequency_encoding(df, test_df):
     frequency_encoder_vars = [
-        #  "Carrier Name",
         'County of Injury',
         'District Name',
         'Industry Code',
@@ -463,8 +454,8 @@ def apply_frequency_encoding(df, test_df=None):
         frequency_encoding(df, col, test_df)
     
     df = df.drop(columns=frequency_encoder_vars)
-    if test_df is not None:
-        test_df = test_df.drop(columns=frequency_encoder_vars) 
+    test_df = test_df.drop(columns=frequency_encoder_vars) 
+
     return df, test_df
 
 def apply_one_hot_encoding(train_df, other_df, features):
