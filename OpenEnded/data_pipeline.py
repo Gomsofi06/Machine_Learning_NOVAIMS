@@ -194,7 +194,7 @@ def predict(df, selected_features=selected_features):
     - list: A list of mapped class predictions.
     """
     # Import model
-    model = joblib.load('./openEnded/model.pkl')
+    model = joblib.load('./openEnded/final_model.pkl')
     
     # Predict
     pred = model.predict(df[selected_features])
