@@ -16,10 +16,9 @@ from sklearn.metrics import precision_score
 
 from catboost import CatBoostClassifier
 from xgboost import XGBClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 
-from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, GridSearchCV
+from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV
 import time
 
 from utils import *
@@ -32,13 +31,8 @@ warnings.filterwarnings('ignore')
 random_state=68+1
 start = start_time = time.time()
 
-
 # Load the data
 train_df = pd.read_csv("./preprocessed_data/train_data.csv", index_col="Claim Identifier")
-
-X = train_df.drop(["Claim Injury Type Encoded"], axis = 1)
-y = train_df["Claim Injury Type Encoded"]
-
 
 param_grids = {
     "CatBoostClassifier": {
@@ -56,9 +50,6 @@ param_grids = {
         "gamma": [0, 0.1, 0.5, 1],
         "lambda": [1, 3, 5],
     },
-    "GaussianNB": {
-        "var_smoothing": np.logspace(0,-9, num=100),
-    },
     "DecisionTreeClassifier": {
         "max_depth": [None, 10, 20, 30],
         "criterion": ["gini", "entropy", "log_loss"],
@@ -67,11 +58,15 @@ param_grids = {
     },
 }
 
+feature_selection = None
+
+X = train_df.drop(["Claim Injury Type Encoded"], axis = 1)
+y = train_df["Claim Injury Type Encoded"]
+
 # Define models
 models = {
     "CatBoostClassifier": CatBoostClassifier(verbose=0, random_state=random_state,custom_metric='F1'),
-    "XGBClassifier": XGBClassifier(use_label_encoder=False, objective="multi:softmax", num_class=8, eval_metric="merror", random_state=random_state),
-    "GaussianNB": GaussianNB(),
+    "XGBClassifier": XGBClassifier(objective="multi:softmax", num_class=8, eval_metric="merror", random_state=random_state),
     "DecisionTreeClassifier": DecisionTreeClassifier(random_state=random_state),
 }
 
@@ -90,7 +85,15 @@ scaler_train = StandardScaler()
 X_train[numerical_features] = scaler_train.fit_transform(X_train[numerical_features])
 X_val[numerical_features] = scaler_train.transform(X_val[numerical_features])
 
-K_fold = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
+drop_list = ["Average Weekly Wage"]
+if feature_selection != None:
+    for col in X_train.columns:
+        if col not in feature_selection:
+            drop_list.append(col)
+X_train = X_train.drop(drop_list, axis=1)
+X_val = X_val.drop(drop_list, axis=1)
+
+K_fold = StratifiedKFold(n_splits=3, shuffle=True, random_state=random_state)
 best_models = {}
 
 for model_name, model in models.items():
@@ -98,29 +101,24 @@ for model_name, model in models.items():
     random_search = RandomizedSearchCV(
         estimator=model,
         param_distributions=param_grids[model_name],
-        n_iter=100,
+        n_iter=10,
         scoring="f1_macro",
-        cv=K_fold,  
+        cv=3,  
         random_state=42,
         n_jobs=-1,
     )
 
     random_search.fit(X_train, y_train)
-    best_models[model_name] = (random_search.best_estimator_, random_search.best_params_)
+    best_models[model_name] = (random_search.best_estimator_, random_search.best_params_,random_search.best_score_)
 
     print(f"Best parameters for {model_name}: {random_search.best_params_}")
-    print(f"Best cross-validated accuracy for {model_name}: {random_search.best_score_:.4f}")
+    print(f"Best cross-validated f1 socre for {model_name}: {random_search.best_score_:.4f}")
 
-for model_name, (best_model, best_params) in best_models.items():
+end_time = time.time()
+hours_passed = (end_time - start_time) / 3600
+print(f"It took {hours_passed:.2f} hours")
 
-    y_pred = model.predict(X_val)
-    f1 = f1_score(y_val, y_pred, average="macro")
-    print(f"\nTest Accuracy for {model_name}: {f1:.4f}")
-    
-    end_time = time.time()
-    hours_passed = (end_time - start_time) / 3600
-    print(f"It took {hours_passed:.2f} hours")
-
-    save_scores(f"{model_name} RandomSearch", best_params, f1, hours_passed)
+for model_name, (best_model, best_params, best_score) in best_models.items():
+    save_scores(f"{model_name} RandomSearch, {feature_selection}", best_params, best_score, hours_passed)
 
 
