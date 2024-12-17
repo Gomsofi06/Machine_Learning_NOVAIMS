@@ -143,7 +143,8 @@ def pipeline(df, numerical_features=numerical_features):
 
     # Frequency Encoder
     for column_name in enc_feat_dict['FrequencyEncoder']:
-        freq_mapping = joblib.load(f'../Encoders/{column_name}Encoder.pkl')
+        with open(f'../Encoders/{column_name}Encoder.json', 'r') as f:
+            freq_mapping = json.load(f)
         new_column_name = f"Enc {column_name}"
         df[new_column_name] = df[column_name].map(freq_mapping)
 
