@@ -624,7 +624,7 @@ def create_new_features(train_df, test_df, calculate=True):
     if calculate:
         median_wage = train_df['Average Weekly Wage'].median()
     else:
-        with open('./OthersPipelinemedians.json', 'r') as f:
+        with open('./OthersPipeline/medians.json', 'r') as f:
             median_dict = json.load(f)
         median_wage = median_dict['Average Weekly Wage']
     train_df['Relative_Wage'] = np.where(train_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
