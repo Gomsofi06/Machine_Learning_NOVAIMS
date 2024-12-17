@@ -131,7 +131,7 @@ def pipeline(df, numerical_features=numerical_features):
     
     # OneHotEncoder
     # Load the OneHotEncoder
-    oh_encoder = joblib.load('./Encoders/OneHotEncoder.pkl')
+    oh_encoder = joblib.load('../Encoders/OneHotEncoder.pkl')
     # Apply OneHotEncoder to the specified categorical features
     encoded_features = oh_encoder.transform(df[enc_feat_dict['OneHotEncoder']]).astype(int)
     # Get the encoded feature names
@@ -143,7 +143,7 @@ def pipeline(df, numerical_features=numerical_features):
 
     # Frequency Encoder
     for column_name in enc_feat_dict['FrequencyEncoder']:
-        freq_mapping = joblib.load(f'./Encoders/{column_name}Encoder.pkl')
+        freq_mapping = joblib.load(f'../Encoders/{column_name}Encoder.pkl')
         new_column_name = f"Enc {column_name}"
         df[new_column_name] = df[column_name].map(freq_mapping)
 
@@ -155,7 +155,7 @@ def pipeline(df, numerical_features=numerical_features):
     # Imputation na - phase 2
     columns = ["Age at Injury","Average Weekly Wage"]
     # Load the saved median values from the json file
-    with open('./OthersPipeline/medians.json', 'r') as f:
+    with open('../OthersPipeline/medians.json', 'r') as f:
         median_dict = json.load(f)
     # Impute missing values for 'Age at Injury' and 'Average Weekly Wage'
     for col in columns:
@@ -177,7 +177,7 @@ def pipeline(df, numerical_features=numerical_features):
     ).astype('category').cat.codes
 
     # Scaling
-    scaler = joblib.load('./OthersPipeline/Scaler.pkl')
+    scaler = joblib.load('../OthersPipeline/Scaler.pkl')
     df[numerical_features]  = scaler.transform(df[numerical_features])  
 
     return df
