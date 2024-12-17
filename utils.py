@@ -420,7 +420,7 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def frequency_encoding(df, column_name, test_df, verbose= False, save_encoding=False):
+def frequency_encoding(df, column_name, test_df, verbose= False, save_encoding):
 
     new_column_name = f"Enc {column_name}"
 
@@ -446,7 +446,7 @@ def frequency_encoding(df, column_name, test_df, verbose= False, save_encoding=F
     test_df[new_column_name] = test_df[column_name].map(freq_mapping).fillna(default_value)
 
 
-def apply_frequency_encoding(df, test_df):
+def apply_frequency_encoding(df, test_df, save_encoding=False):
     frequency_encoder_vars = [
         'County of Injury',
         'District Name',
@@ -458,7 +458,7 @@ def apply_frequency_encoding(df, test_df):
     ]
 
     for col in frequency_encoder_vars:
-        frequency_encoding(df, col, test_df)
+        frequency_encoding(df, col, test_df, save_encoding)
     
     df = df.drop(columns=frequency_encoder_vars)
     test_df = test_df.drop(columns=frequency_encoder_vars) 
