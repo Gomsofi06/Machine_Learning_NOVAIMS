@@ -595,9 +595,8 @@ def NA_imputer(train_df, test_df, save_median=False):
         folder_path = "./OthersPipeline/"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-            print(f"Folder '{folder_path}' created.")
         else:
-            print(f"Folder '{folder_path}' already exists.")
+            print('')
         with open('./OthersPipeline/medians.json', 'w') as f:
             json.dump(median_dict, f, indent=4)
 
