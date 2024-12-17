@@ -7,7 +7,7 @@ import sys
 sys.path.append('../')
 from utils import *
 
-def pipeline(df):
+def pipeline(df, numerical_features):
     '''Check duplicate IDs'''
     # Check datatypes
     datatype_changes([df])
@@ -40,7 +40,7 @@ def pipeline(df):
     df['Average Weekly Wage'] = df['Average Weekly Wage'].apply(lambda x: np.log10(x) if x > 0 else np.nan)
     df['IME-4 Count'] = df['IME-4 Count'].apply(lambda x: np.sqrt(x) if x > 0 else 0)
 
-    # Feature Engineering
+    # Feature Engineering - phase 1
     # Known date or not
     date_columns = ['Accident Date', 'Assembly Date', 'C-2 Date', 'C-3 Date', 'First Hearing Date', 'Age at Injury', 'Birth Year']
     for col in date_columns:
@@ -135,6 +135,41 @@ def pipeline(df):
     df.loc[condition, 'Birth Year'] = df.loc[condition, 'Accident Date'].dt.year - df.loc[condition, 'Age at Injury']
     df.drop('Accident Date',axis=1,inplace=True)
 
-    
-    # Columns Selection
+    # Feature Engineering - phase 2
+    median_wage = median_dict['Average Weekly Wage']
+    df['Relative_Wage'] = np.where(df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
+    financial_impact(df)
+
+    age_bins = [0, 25, 40, 55, 70, 100]  # Define bins
+    age_labels = [0, 1, 2, 3, 4]         # Define labels
+    df['Age_Group'] = pd.cut(
+        df['Age at Injury'], bins=age_bins, labels=age_labels, right=False, include_lowest=True
+    ).astype('category').cat.codes
+
+    # Scaling
+    scaler = joblib.load('./OthersPipeline/Scaler.pkl')
+    df[numerical_features]  = scaler.transform(df[numerical_features])  
+
+def predict(df, selected_features):
+    # Import model
+    model = joblib.load('./openEnded/model.pkl')
+    # Predict
+    pred = model.predict(df[selected_features])
+
+    # Define mapping
+    class_mapping = {
+        0:'1. CANCELLED', 
+        1:'2. NON-COMP',
+        2:'3. MED ONLY', 
+        3:'4. TEMPORARY',
+        4:'5. PPD SCH LOSS', 
+        5:'6. PPD NSL', 
+        6:'7. PTD', 
+        7:'8. DEATH'
+    }
+
+    # Use the values from class_mapping as the target names
+    target_names = list(class_mapping.values())
+
+    return pred
 
