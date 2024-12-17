@@ -180,6 +180,8 @@ def pipeline(df, numerical_features=numerical_features):
     scaler = joblib.load('./OthersPipeline/Scaler.pkl')
     df[numerical_features]  = scaler.transform(df[numerical_features])  
 
+    return df
+
 def predict(df, selected_features=selected_features):
     """
     Predict outcomes using a pre-trained model and map predictions to class names.

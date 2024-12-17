@@ -65,7 +65,7 @@ class GrantApp:
 
     # Sample prediction function
     def make_prediction(data_input):
-        pipeline(data_input)
+        df = pipeline(data_input)
         predictions = predict(data_input)
         return predictions
 
