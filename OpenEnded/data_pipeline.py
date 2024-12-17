@@ -40,9 +40,9 @@ def pipeline(df, numerical_features=numerical_features):
     datatype_changes([df])
 
     # Replace incoherencies by na
-    limit_feature([df], 'Age at Injury', minimum=14, maximum=119)
-    limit_feature([df], 'Birth Year', minimum=2024-119+1, maximum=2024-14+1)
-    limit_feature([df], 'Average Weekly Wage', minimum=1, maximum=None)
+    limit_feature([df], 'Age at Injury', minimum=14, maximum=119, verbose=False)
+    limit_feature([df], 'Birth Year', minimum=2024-119+1, maximum=2024-14+1, verbose=False)
+    limit_feature([df], 'Average Weekly Wage', minimum=1, maximum=None, verbose=False)
 
     # Input na - phase 1
     # Filter the rows where 'Accident Date' is NaN, but 'Assembly Date' is not NaN
@@ -126,7 +126,7 @@ def pipeline(df, numerical_features=numerical_features):
 
     # Feature Encoding
     # Open the JSON file and load it as a Python dictionary
-    with open('./Encoders/dic_4_encoding.json', 'r') as f:
+    with open('../Encoders/dic_4_encoding.json', 'r') as f:
         enc_feat_dict = json.load(f)
     
     # OneHotEncoder
