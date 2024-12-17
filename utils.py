@@ -497,7 +497,7 @@ def apply_one_hot_encoding(train_df, other_df, features, save_encoder=False):
         else:
             print(f"Folder '{folder_path}' already exists.")
         # Save encoder
-        joblib.dump(oh_enc, 'OneHotEncoder.pkl')
+        joblib.dump(oh_enc, './Encoders/OneHotEncoder.pkl')
 
     # Create encoded DataFrame with proper feature names
     encoded_feature_names = oh_enc.get_feature_names_out(features)
@@ -591,7 +591,14 @@ def NA_imputer(train_df, test_df, save_median=False):
     if save_median:
         # Create a dictionary to store the median values for future use
         median_dict = imputation_value.to_dict()
-        with open('./OthersPipelinemedians.json', 'w') as f:
+        # Create folder if it does not exist
+        folder_path = "./OthersPipeline/"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            print(f"Folder '{folder_path}' created.")
+        else:
+            print(f"Folder '{folder_path}' already exists.")
+        with open('./OthersPipeline/medians.json', 'w') as f:
             json.dump(median_dict, f, indent=4)
 
     for col in columns:
