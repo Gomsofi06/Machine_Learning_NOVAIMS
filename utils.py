@@ -582,10 +582,18 @@ def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
 
     print(f"Results added to {filename}")
 
-def NA_imputer(train_df, test_df):
+def NA_imputer(train_df, test_df, save_meadian=False):
 
     columns = ["Age at Injury","Average Weekly Wage"]
     imputation_value  = train_df[columns].median()
+
+    # Save Median Values
+    if save_meadian:
+        # Create a dictionary to store the median values for future use
+        median_dict = imputation_value.to_dict()
+        with open('./OthersPipelinemedians.json', 'w') as f:
+            json.dump(median_dict, f, indent=4)
+
     for col in columns:
             train_df[col] = train_df[col].fillna(imputation_value[col])
             test_df[col] = test_df[col].fillna(imputation_value[col])
@@ -605,9 +613,13 @@ def NA_imputer(train_df, test_df):
     test_df.drop('Accident Date',axis=1,inplace=True)
 
 
-def create_new_features(train_df, test_df):
-
-    median_wage = train_df['Average Weekly Wage'].median()
+def create_new_features(train_df, test_df, calculate=True):
+    if calculate:
+        median_wage = train_df['Average Weekly Wage'].median()
+    else:
+        with open('./OthersPipelinemedians.json', 'r') as f:
+            median_dict = json.load(f)
+        median_wage = median_dict['Average Weekly Wage']
     train_df['Relative_Wage'] = np.where(train_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
     test_df['Relative_Wage'] = np.where(test_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
 
