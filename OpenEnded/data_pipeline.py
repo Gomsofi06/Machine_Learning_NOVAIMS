@@ -134,11 +134,11 @@ def pipeline(df, numerical_features=numerical_features):
     oh_encoder = joblib.load('./Encoders/OneHotEncoder.pkl')
     # Apply OneHotEncoder to the specified categorical features
     encoded_features = oh_encoder.transform(df[enc_feat_dict['OneHotEncoder']]).astype(int)
-    # Retrieve the correct encoded feature names
+    # Get the encoded feature names
     encoded_feature_names = oh_encoder.get_feature_names_out(enc_feat_dict['OneHotEncoder'])
-    # Convert the encoded features to a DataFrame
+    # Create a new DataFrame for the encoded features
     encoded_df = pd.DataFrame(encoded_features, columns=encoded_feature_names, index=df.index)
-    # Combine the encoded features with the original DataFrame, dropping the original columns
+    # Combine the encoded features with the original DataFrame
     df = pd.concat([df.drop(columns=enc_feat_dict['OneHotEncoder']), encoded_df], axis=1)
 
     # Frequency Encoder
