@@ -6,8 +6,35 @@ import sys
 # setting path
 sys.path.append('../')
 from utils import *
+from utils_dicts import *
 
-def pipeline(df, numerical_features):
+
+selected_features = ['Age at Injury', 'Birth Year', 'IME-4 Count', 'Number of Dependents',
+       'Known Accident Date', 'Known Assembly Date', 'Known C-2 Date',
+       'Known C-3 Date', 'Known First Hearing Date', 'Known Age at Injury',
+       'Known Birth Year', 'Accident Date_Year', 'Accident Date_Month',
+       'Accident Date_Day', 'Accident Date_DayOfWeek', 'Assembly Date_Year',
+       'Assembly Date_Month', 'Assembly Date_Day', 'Assembly Date_DayOfWeek',
+       'C-2 Date_Year', 'C-2 Date_Month', 'C-2 Date_Day', 'C-2 Date_DayOfWeek',
+       'C-3 Date_Year', 'C-3 Date_Month', 'C-3 Date_Day', 'C-3 Date_DayOfWeek',
+       'First Hearing Date_Year', 'First Hearing Date_Month',
+       'First Hearing Date_Day', 'First Hearing Date_DayOfWeek',
+       'Days_to_First_Hearing', 'Days_to_C2', 'Days_to_C3', 'Holiday_Accident',
+       'Weekend_Accident', 'Risk_Level', 'Alternative Dispute Resolution_U',
+       'Alternative Dispute Resolution_Y', 'Attorney/Representative_Y',
+       'Carrier Type_2A. SIF', 'Carrier Type_3A. SELF PUBLIC',
+       'Carrier Type_4A. SELF PRIVATE',
+       'Carrier Type_5D. SPECIAL FUND - UNKNOWN', 'Carrier Type_UNKNOWN',
+       'COVID-19 Indicator_Y', 'Gender_M', 'Gender_Unknown',
+       'Medical Fee Region_II', 'Medical Fee Region_III',
+       'Medical Fee Region_IV', 'Medical Fee Region_UK', 'Accident_Season_Sin',
+       'Accident_Season_Cos', 'Enc County of Injury', 'Enc District Name',
+       'Enc Industry Code', 'Enc WCIO Cause of Injury Code',
+       'Enc WCIO Nature of Injury Code', 'Enc WCIO Part Of Body Code',
+       'Enc Zip Code', 'Relative_Wage', 'Financial Impact Category',
+       'Age_Group']
+
+def pipeline(df, numerical_features=numerical_features):
     '''Check duplicate IDs'''
     # Check datatypes
     datatype_changes([df])
@@ -150,7 +177,7 @@ def pipeline(df, numerical_features):
     scaler = joblib.load('./OthersPipeline/Scaler.pkl')
     df[numerical_features]  = scaler.transform(df[numerical_features])  
 
-def predict(df, selected_features):
+def predict(df, selected_features=selected_features):
     """
     Predict outcomes using a pre-trained model and map predictions to class names.
     
