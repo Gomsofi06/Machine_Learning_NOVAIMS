@@ -440,7 +440,7 @@ def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False):
     if save_encoding:
         if save_encoding:
             # Save the frequency mapping to a JSON file
-            with open(f'./Encoders/{column_name}Encoder', 'w') as f:
+            with open(f'./Encoders/{column_name}Encoder.pkl', 'w') as f:
                 json.dump(freq_mapping, f)
 
     df[new_column_name] = df[column_name].map(freq_mapping)
