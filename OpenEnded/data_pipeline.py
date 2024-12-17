@@ -17,8 +17,7 @@ def pipeline(df):
     limit_feature([df], 'Birth Year', minimum=2024-119+1, maximum=2024-14+1)
     limit_feature([df], 'Average Weekly Wage', minimum=1, maximum=None)
 
-    # Input na
-
+    # Input na - phase 1
     # Filter the rows where 'Accident Date' is NaN, but 'Assembly Date' is not NaN
     condition = df['Accident Date'].isna() & df['Assembly Date'].notna()
     # Replace missing 'Accident Date' with 'Assembly Date' where the condition is true
@@ -99,8 +98,28 @@ def pipeline(df):
     df['Gender'] = df['Gender'].replace({'X': 'Unknown'})
 
     # Feature Encoding
+    # Open the JSON file and load it as a Python dictionary
+    with open('./Encoders/dic_4_encoding.json', 'r') as f:
+        enc_feat_dict = json.load(f)
+    
+    # OneHotEncoder
+    oh_encoder = joblib.load('./Encoders/OneHotEncoder.pkl')
+    encoded_features = oh_encoder.transform(df[enc_feat_dict['OneHotEncoder']]).astype(int)
+    # Create encoded DataFrame with proper feature names
+    encoded_feature_names = oh_encoder.get_feature_names_out(enc_feat_dict['OneHotEncoder'])
+    encoded_df = pd.DataFrame(encoded_feature_names, columns=encoded_feature_names, index=df.index)
+    # Combine the encoded features with the rest of the original DataFrames (dropping the original features)
+    df = pd.concat([df.drop(columns=enc_feat_dict['OneHotEncoder']), encoded_df], axis=1)
 
-    # Imputation that happen after data split (maybe create another function?)
+    # Frequency Encoder
+    '''To do'''
+
+    # SineCosineEncoder
+    season_mapping = {"Winter": 0, "Spring": 1, "Summer": 2, "Fall": 3}
+    df = sine_cosine_encoding(df, enc_feat_dict['SineCosine'], season_mapping )
+
+
+    # Imputation na - phase 2
     
     # Columns Selection
 
