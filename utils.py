@@ -443,7 +443,7 @@ def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         # Save the frequency mapping to a JSON file
-        with open(f'./Encoders/{column_name}Encoder.pkl', 'w') as f:
+        with open(f'./Encoders/{column_name}Encoder.pkl', 'wb') as f:
             joblib.dump(freq_mapping, f)
 
     df[new_column_name] = df[column_name].map(freq_mapping)
