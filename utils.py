@@ -438,10 +438,13 @@ def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False):
     freq_mapping["Unknown"] = freq_mapping.get("Unknown", default_value)
 
     if save_encoding:
-        if save_encoding:
-            # Save the frequency mapping to a JSON file
-            with open(f'./Encoders/{column_name}Encoder.pkl', 'w') as f:
-                json.dump(freq_mapping, f)
+        # Create folder if it does not exist
+        folder_path = "./Encoders/"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        # Save the frequency mapping to a JSON file
+        with open(f'./Encoders/{column_name}Encoder.pkl', 'w') as f:
+            json.dump(freq_mapping, f)
 
     df[new_column_name] = df[column_name].map(freq_mapping)
     test_df[new_column_name] = test_df[column_name].map(freq_mapping).fillna(default_value)
@@ -494,8 +497,6 @@ def apply_one_hot_encoding(train_df, other_df, features, save_encoder=False):
         folder_path = "./Encoders/"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-        else:
-            print()
         # Save encoder
         joblib.dump(oh_enc, './Encoders/OneHotEncoder.pkl')
 
