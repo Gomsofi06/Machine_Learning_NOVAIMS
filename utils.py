@@ -17,6 +17,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import holidays
 from sklearn.preprocessing import OneHotEncoder
 from scipy.cluster.hierarchy import linkage, dendrogram
+import joblib
 
 
 # Color of plots
@@ -419,7 +420,7 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def frequency_encoding(df, column_name, test_df, verbose= False):
+def frequency_encoding(df, column_name, test_df, verbose= False, save_encoding=False):
 
     new_column_name = f"Enc {column_name}"
 
@@ -434,6 +435,12 @@ def frequency_encoding(df, column_name, test_df, verbose= False):
     default_value = 0 
     freq_mapping = {k: v for k, v in freq_mapping.items()} 
     freq_mapping["Unknown"] = freq_mapping.get("Unknown", default_value)
+
+    if save_encoding:
+        if save_encoding:
+            # Save the frequency mapping to a JSON file
+            with open(f'./Encoders/{column_name}Encoder', 'w') as f:
+                json.dump(freq_mapping, f)
 
     df[new_column_name] = df[column_name].map(freq_mapping)
     test_df[new_column_name] = test_df[column_name].map(freq_mapping).fillna(default_value)
@@ -458,34 +465,49 @@ def apply_frequency_encoding(df, test_df):
 
     return df, test_df
 
-def apply_one_hot_encoding(train_df, other_df, features):
+def apply_one_hot_encoding(train_df, other_df, features, save_encoder=False):
     """
-    Applies one-hot encoding to the specified features in the DataFrame.
+    Applies one-hot encoding to the specified features in the DataFrame,
+    and optionally saves the encoder categories to a JSON file.
 
     Parameters:
-    - df (pd.DataFrame): The input DataFrame.
-    - features (list): List of column names in the DataFrame to be encoded.
-    - drop_first (bool): Whether to drop the first category to avoid multicollinearity. Default is True.
+    - train_df (pd.DataFrame): The training DataFrame.
+    - other_df (pd.DataFrame): Another DataFrame to apply the same encoding.
+    - features (list): List of column names to be encoded.
+    - save_encoder (Boolean): Optional. Save encoder flag.
 
     Returns:
-    - pd.DataFrame: The DataFrame with the specified features one-hot encoded.
+    - pd.DataFrame: Transformed training DataFrame.
+    - pd.DataFrame: Transformed other DataFrame.
     """
-    # Initialize the encoder with drop_first option
+    # Initialize the encoder with drop='first' option for avoiding multicollinearity
     oh_enc = OneHotEncoder(drop='first', sparse_output=False)
-    
-    # Fit and transform the selected features
+
+    # Fit the encoder on the train dataset and transform both datasets
     train_encoded_features = oh_enc.fit_transform(train_df[features]).astype(int)
     other_encoded_features = oh_enc.transform(other_df[features]).astype(int)
-    
-    # Create a new DataFrame for the encoded features
+
+    # Save the encoder
+    if save_encoder:
+        # Create folder if it does not exist
+        folder_path = "./Encoders/"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            print(f"Folder '{folder_path}' created.")
+        else:
+            print(f"Folder '{folder_path}' already exists.")
+        # Save encoder
+        joblib.dump(oh_enc, 'OneHotEncoder.pkl')
+
+    # Create encoded DataFrame with proper feature names
     encoded_feature_names = oh_enc.get_feature_names_out(features)
     train_encoded_df = pd.DataFrame(train_encoded_features, columns=encoded_feature_names, index=train_df.index)
     other_encoded_df = pd.DataFrame(other_encoded_features, columns=encoded_feature_names, index=other_df.index)
-    
-    # Combine the encoded features with the original DataFrame (dropping the original columns)
+
+    # Combine the encoded features with the rest of the original DataFrames (dropping the original features)
     new_train = pd.concat([train_df.drop(columns=features), train_encoded_df], axis=1)
     new_other = pd.concat([other_df.drop(columns=features), other_encoded_df], axis=1)
-    
+
     return new_train, new_other
 
 
@@ -560,10 +582,18 @@ def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
 
     print(f"Results added to {filename}")
 
-def NA_imputer(train_df, test_df):
+def NA_imputer(train_df, test_df, save_meadian=False):
 
     columns = ["Age at Injury","Average Weekly Wage"]
     imputation_value  = train_df[columns].median()
+
+    # Save Median Values
+    if save_meadian:
+        # Create a dictionary to store the median values for future use
+        median_dict = imputation_value.to_dict()
+        with open('./OthersPipelinemedians.json', 'w') as f:
+            json.dump(median_dict, f, indent=4)
+
     for col in columns:
             train_df[col] = train_df[col].fillna(imputation_value[col])
             test_df[col] = test_df[col].fillna(imputation_value[col])
@@ -583,9 +613,13 @@ def NA_imputer(train_df, test_df):
     test_df.drop('Accident Date',axis=1,inplace=True)
 
 
-def create_new_features(train_df, test_df):
-
-    median_wage = train_df['Average Weekly Wage'].median()
+def create_new_features(train_df, test_df, calculate=True):
+    if calculate:
+        median_wage = train_df['Average Weekly Wage'].median()
+    else:
+        with open('./OthersPipelinemedians.json', 'r') as f:
+            median_dict = json.load(f)
+        median_wage = median_dict['Average Weekly Wage']
     train_df['Relative_Wage'] = np.where(train_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
     test_df['Relative_Wage'] = np.where(test_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
 
