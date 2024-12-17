@@ -13,3 +13,93 @@
     "time":1.97
 }
 
+{
+    "experiment_count": 2,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 500,
+        "learning_rate": 0.5,
+        "depth": 6,
+        "l2_leaf_reg": 6,
+        "bagging_temperature": 0.5,
+        "grow_policy": "SymmetricTree"
+    },
+    "best_f1_score": 0.4173040978466413,
+    "time": 2.099962220390638
+}
+
+{
+    "experiment_count": 3,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 400,
+        "learning_rate": 0.5,
+        "depth": 6,
+        "l2_leaf_reg": 6,
+        "bagging_temperature": 0.4
+    },
+    "best_f1_score": 0.4306739510546285,
+    "time": 0.7468315070867538
+}
+
+{
+    "experiment_count": 4,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 400,
+        "learning_rate": 0.5,
+        "depth": 6,
+        "l2_leaf_reg": 6,
+        "bagging_temperature": 0.4,
+        "grow_policy": "SymmetricTree",
+        "use_SMOTE or use_RandomUnderSampler": false
+    },
+    "best_f1_score": 0.4192978595428632,
+    "time": 0.0685869926876492
+}
+
+{
+    "experiment_count": 5,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 400,
+        "learning_rate": 0.4,
+        "depth": 5,
+        "l2_leaf_reg": 5,
+        "bagging_temperature": 0.4,
+        "random_state": 69
+    },
+    "best_f1_score": 0.4212099223756747,
+    "time": 0.21271215405729083
+}
+
+{
+    "experiment_count": 6,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 500,
+        "learning_rate": 0.07,
+        "depth": 6,
+        "l2_leaf_reg": 6,
+        "bagging_temperature": 0.4,
+        "random_state": 69
+    },
+    "best_f1_score": 0.40435549588808767,
+    "time": 0.06881061110231612
+}
+
+{
+    "experiment_count": 7,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 600,
+        "learning_rate": 0.1,
+        "depth": 6,
+        "l2_leaf_reg": 6,
+        "bagging_temperature": 0.4,
+        "random_state": 69
+    },
+    "best_f1_score": 0.4113984024462238,
+    "time": 0.11255562153127459
+}
+

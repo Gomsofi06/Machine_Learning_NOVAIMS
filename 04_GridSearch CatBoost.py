@@ -48,7 +48,8 @@ X = train_df.drop(["Claim Injury Type Encoded"], axis = 1)
 y = train_df["Claim Injury Type Encoded"]
 
 # Split the data
-X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.25, stratify = y, shuffle = True)
+random_state = 68+1
+X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.25, stratify = y, shuffle = True, random_state=random_state)
 
 
 # Preprocess the data
@@ -71,15 +72,16 @@ y_val_ray = ray.put(y_val)
 # Define the search space
 search_space = {
     # Model Dependent
-    "iterations": tune.grid_search([300, 500, 800]),  
-    "learning_rate": tune.grid_search([0.01, 0.03, 0.1, 1.5]),  
-    "depth": tune.grid_search([3, 6, 9]),           
-    "l2_leaf_reg": tune.grid_search([3, 6, 9]),                 
-    "bagging_temperature": tune.grid_search([0.2, 0.5, 1]),       
-    "grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
+    "iterations": tune.grid_search([400,500,600]), #[ 300, 400, 500, 600, 800] 
+    "learning_rate": tune.grid_search([0.03,0.05, 0.1]),  #[0.03, 0.05, 0.07, 0.1,0.3,0.4,0.5,0.6]
+    "depth": tune.grid_search([6]),        #[4,6,9]   
+    "l2_leaf_reg": tune.grid_search([6]),   #[4,6,9]                
+    "bagging_temperature": tune.grid_search([0.4]), #[0.2, 0.4, 0.45, 0.5, 0.8]      
+    #"grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
     
     # Always Use
-    "use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"])
+    #"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
+    "random_state":random_state 
 }
 
 # Create Model
@@ -90,12 +92,12 @@ def CatBoosted_GridSearch(config):
     y_val_gridsearch = ray.get(y_val_ray)
 
     # SMOTE or RandomUnderSampling
-    if "use_SMOTE or use_RandomUnderSampler" == "SMOTE":
-        smote = SMOTE()
-        X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
-        rus = RandomUnderSampler()
-        X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    #if "use_SMOTE or use_RandomUnderSampler" == "SMOTE":
+    #    smote = SMOTE()
+    #    X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    #elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
+    #    rus = RandomUnderSampler()
+    #    X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
     
     X_train_gridsearch = X_train_gridsearch.drop("Average Weekly Wage", axis = 1)
     X_val_gridsearch = X_val_gridsearch.drop("Average Weekly Wage", axis = 1)
@@ -106,8 +108,9 @@ def CatBoosted_GridSearch(config):
         depth=config["depth"],
         l2_leaf_reg=config["l2_leaf_reg"],
         bagging_temperature=config["bagging_temperature"],
-        grow_policy=config["grow_policy"],
+        #grow_policy=config["grow_policy"],
         # -------------------
+        random_state = config["random_state"],
         custom_metric='F1', 
         early_stopping_rounds=50,
         verbose=0
@@ -116,13 +119,16 @@ def CatBoosted_GridSearch(config):
     model.fit(X_train_gridsearch,y_train_gridsearch)
     
     # Predict on validation data
+    y_pred_train = model.predict(X_train_gridsearch)
     y_pred = model.predict(X_val_gridsearch)
 
     # Compute F1 score
-    f1 = f1_score(y_val_gridsearch, y_pred, average="macro")
+    f1_train = f1_score(y_train_gridsearch, y_pred_train, average="macro")
+    f1_val = f1_score(y_val_gridsearch, y_pred, average="macro")
 
     # Report results to Ray Tune
-    session.report({"f1_score": f1})
+    session.report({"f1_score": f1_train})
+    session.report({"f1_score": f1_val})
 
 
 # Run Grid Search
