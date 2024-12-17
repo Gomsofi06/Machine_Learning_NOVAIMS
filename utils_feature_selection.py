@@ -91,9 +91,9 @@ def plot_importance(coef,name):
     plt.show()
 
 
-def check_performace(model_copy,X,y,features_to_scale,feature_selection,n_folds = 5):
+def check_performace(model_copy,X,y,features_to_scale,feature_selection,n_folds = 5, random_state = 68+1):
 
-    K_fold = StratifiedKFold(n_splits=n_folds, shuffle=True)
+    K_fold = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=random_state)
 
     fold = 1
 
@@ -103,7 +103,8 @@ def check_performace(model_copy,X,y,features_to_scale,feature_selection,n_folds 
     for train_index, val_index in K_fold.split(X, y):
         X_train, X_val = X.iloc[train_index], X.iloc[val_index]
         y_train, y_val = y.iloc[train_index], y.iloc[val_index]
-    
+
+        remove_outliers(X_train)
         X_train, X_val = apply_frequency_encoding(X_train, X_val)
 
         NA_imputer(X_train,X_val)

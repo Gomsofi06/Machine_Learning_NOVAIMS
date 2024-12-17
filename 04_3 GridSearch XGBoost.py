@@ -49,10 +49,11 @@ y = train_df["Claim Injury Type Encoded"]
 
 # Split the data
 random_state = 68+1
-X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.25, stratify = y, shuffle = True, random_state=random_state)
+X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.2, stratify = y, shuffle = True, random_state=random_state)
 
 
 # Preprocess the data
+remove_outliers(X_train)
 X_train, X_val = apply_frequency_encoding(X_train, X_val)
 NA_imputer(X_train,X_val)
 create_new_features(X_train,X_val)
@@ -69,73 +70,73 @@ X_val_ray = ray.put(X_val)
 y_val_ray = ray.put(y_val)
 
 
-# Define the search space
 search_space = {
     # Model Dependent
-    "iterations": tune.grid_search([400,500,600]), #[ 300, 400, 500, 600, 800] 
-    "learning_rate": tune.grid_search([0.03,0.05, 0.1]),  #[0.03, 0.05, 0.07, 0.1,0.3,0.4,0.5,0.6]
-    "depth": tune.grid_search([6]),        #[4,6,9]   
-    "l2_leaf_reg": tune.grid_search([6]),   #[4,6,9]                
-    "bagging_temperature": tune.grid_search([0.4]), #[0.2, 0.4, 0.45, 0.5, 0.8]      
-    #"grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
+    "n_estimators": tune.grid_search([100, 200, 300]),         
+    "learning_rate": tune.grid_search([0.01, 0.05, 0.1]),   # [0.01, 0.05, 0.1, 1.5]  
+    "max_depth": tune.grid_search([5, 7]),                              
+    "subsample": tune.grid_search([0.6, 0.9]),            
+    "colsample_bytree": tune.grid_search([0.6, 0.9]),
+    "reg_lambda": tune.grid_search([10, 100]),     # [1,10 ,100]
+    "gamma": tune.grid_search([0.1, 0.3]),      #[0, 0.1, 0.3]            
+    "grow_policy": tune.grid_search(["depthwise", "lossguide"]),
     
     # Always Use
-    #"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
-    "random_state":random_state 
+    "use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
+    "random_state":random_state
 }
 
 # Create Model
-def CatBoosted_GridSearch(config):
+def XGBBoosted_GridSearch(config):
     X_train_gridsearch = ray.get(X_train_ray)
     y_train_gridsearch = ray.get(y_train_ray)
     X_val_gridsearch = ray.get(X_val_ray)
     y_val_gridsearch = ray.get(y_val_ray)
 
     # SMOTE or RandomUnderSampling
-    #if "use_SMOTE or use_RandomUnderSampler" == "SMOTE":
-    #    smote = SMOTE()
-    #    X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    #elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
-    #    rus = RandomUnderSampler()
-    #    X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    
+    if "use_SMOTE or use_RandomUnderSampler" == "SMOTE":
+        smote = SMOTE()
+        X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
+    elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
+        rus = RandomUnderSampler()
+        X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
+
     X_train_gridsearch = X_train_gridsearch.drop("Average Weekly Wage", axis = 1)
     X_val_gridsearch = X_val_gridsearch.drop("Average Weekly Wage", axis = 1)
-
-    model = CatBoostClassifier(
-        iterations=config["iterations"],
-        learning_rate=config["learning_rate"],
-        depth=config["depth"],
-        l2_leaf_reg=config["l2_leaf_reg"],
-        bagging_temperature=config["bagging_temperature"],
-        #grow_policy=config["grow_policy"],
-        # -------------------
-        random_state = config["random_state"],
-        custom_metric='F1', 
-        early_stopping_rounds=50,
-        verbose=0
-    )
+    
+    model = XGBClassifier(
+                        n_estimators=config["n_estimators"],        
+                        learning_rate=config["learning_rate"],      
+                        max_depth=config["max_depth"],                          
+                        subsample=config["subsample"],              
+                        colsample_bytree=config["colsample_bytree"],
+                        reg_lambda=config["reg_lambda"],
+                        gamma=config["gamma"],                      
+                        grow_policy=config["grow_policy"],          
+                        objective="multi:softmax",                  
+                        num_class=8,                                
+                        eval_metric="merror",   
+                        random_state = config["random_state"],                                      
+                        verbosity=0                                 
+                    )
 
     model.fit(X_train_gridsearch,y_train_gridsearch)
     
     # Predict on validation data
-    y_pred_train = model.predict(X_train_gridsearch)
     y_pred = model.predict(X_val_gridsearch)
 
     # Compute F1 score
-    f1_train = f1_score(y_train_gridsearch, y_pred_train, average="macro")
-    f1_val = f1_score(y_val_gridsearch, y_pred, average="macro")
+    f1 = f1_score(y_val_gridsearch, y_pred, average="macro")
 
     # Report results to Ray Tune
-    session.report({"f1_score": f1_train})
-    session.report({"f1_score": f1_val})
+    session.report({"f1_score": f1})
 
 
 # Run Grid Search
 time_passed = (time.time() - start_time) / 60
 print("Starting Grid Search after:", time_passed, "minutes")
 analysis = tune.run(
-    CatBoosted_GridSearch,
+    XGBBoosted_GridSearch,
     config=search_space, 
     scheduler=ASHAScheduler(metric="f1_score", mode="max", grace_period=5),
     resources_per_trial=available_resources,
@@ -155,4 +156,4 @@ print(f"It took {hours_passed:.2f} hours")
 total_trials = len(analysis.trials)
 print(f"Total number of trials: {total_trials}")
 
-save_scores("CatBoost", best_trial.config, best_trial.last_result["f1_score"], hours_passed)
+save_scores("XGBoost", best_trial.config, best_trial.last_result["f1_score"], hours_passed)
