@@ -582,13 +582,13 @@ def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
 
     print(f"Results added to {filename}")
 
-def NA_imputer(train_df, test_df, save_meadian=False):
+def NA_imputer(train_df, test_df, save_median=False):
 
     columns = ["Age at Injury","Average Weekly Wage"]
     imputation_value  = train_df[columns].median()
 
     # Save Median Values
-    if save_meadian:
+    if save_median:
         # Create a dictionary to store the median values for future use
         median_dict = imputation_value.to_dict()
         with open('./OthersPipelinemedians.json', 'w') as f:
