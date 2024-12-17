@@ -493,9 +493,8 @@ def apply_one_hot_encoding(train_df, other_df, features, save_encoder=False):
         folder_path = "./Encoders/"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-            print(f"Folder '{folder_path}' created.")
         else:
-            print(f"Folder '{folder_path}' already exists.")
+            print()
         # Save encoder
         joblib.dump(oh_enc, './Encoders/OneHotEncoder.pkl')
 
