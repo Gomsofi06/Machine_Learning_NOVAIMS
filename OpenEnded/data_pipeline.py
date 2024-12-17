@@ -6,19 +6,45 @@ import sys
 # setting path
 sys.path.append('../')
 from utils import *
+from utils_dicts import *
 
-def pipeline(df):
+
+selected_features = ['Age at Injury', 'Birth Year', 'IME-4 Count', 'Number of Dependents',
+       'Known Accident Date', 'Known Assembly Date', 'Known C-2 Date',
+       'Known C-3 Date', 'Known First Hearing Date', 'Known Age at Injury',
+       'Known Birth Year', 'Accident Date_Year', 'Accident Date_Month',
+       'Accident Date_Day', 'Accident Date_DayOfWeek', 'Assembly Date_Year',
+       'Assembly Date_Month', 'Assembly Date_Day', 'Assembly Date_DayOfWeek',
+       'C-2 Date_Year', 'C-2 Date_Month', 'C-2 Date_Day', 'C-2 Date_DayOfWeek',
+       'C-3 Date_Year', 'C-3 Date_Month', 'C-3 Date_Day', 'C-3 Date_DayOfWeek',
+       'First Hearing Date_Year', 'First Hearing Date_Month',
+       'First Hearing Date_Day', 'First Hearing Date_DayOfWeek',
+       'Days_to_First_Hearing', 'Days_to_C2', 'Days_to_C3', 'Holiday_Accident',
+       'Weekend_Accident', 'Risk_Level', 'Alternative Dispute Resolution_U',
+       'Alternative Dispute Resolution_Y', 'Attorney/Representative_Y',
+       'Carrier Type_2A. SIF', 'Carrier Type_3A. SELF PUBLIC',
+       'Carrier Type_4A. SELF PRIVATE',
+       'Carrier Type_5D. SPECIAL FUND - UNKNOWN', 'Carrier Type_UNKNOWN',
+       'COVID-19 Indicator_Y', 'Gender_M', 'Gender_Unknown',
+       'Medical Fee Region_II', 'Medical Fee Region_III',
+       'Medical Fee Region_IV', 'Medical Fee Region_UK', 'Accident_Season_Sin',
+       'Accident_Season_Cos', 'Enc County of Injury', 'Enc District Name',
+       'Enc Industry Code', 'Enc WCIO Cause of Injury Code',
+       'Enc WCIO Nature of Injury Code', 'Enc WCIO Part Of Body Code',
+       'Enc Zip Code', 'Relative_Wage', 'Financial Impact Category',
+       'Age_Group']
+
+def pipeline(df, numerical_features=numerical_features):
     '''Check duplicate IDs'''
     # Check datatypes
     datatype_changes([df])
 
     # Replace incoherencies by na
-    limit_feature([df], 'Age at Injury', minimum=14, maximum=119)
-    limit_feature([df], 'Birth Year', minimum=2024-119+1, maximum=2024-14+1)
-    limit_feature([df], 'Average Weekly Wage', minimum=1, maximum=None)
+    limit_feature([df], 'Age at Injury', minimum=14, maximum=119, verbose=False)
+    limit_feature([df], 'Birth Year', minimum=2024-119+1, maximum=2024-14+1, verbose=False)
+    limit_feature([df], 'Average Weekly Wage', minimum=1, maximum=None, verbose=False)
 
-    # Input na
-
+    # Input na - phase 1
     # Filter the rows where 'Accident Date' is NaN, but 'Assembly Date' is not NaN
     condition = df['Accident Date'].isna() & df['Assembly Date'].notna()
     # Replace missing 'Accident Date' with 'Assembly Date' where the condition is true
@@ -41,7 +67,7 @@ def pipeline(df):
     df['Average Weekly Wage'] = df['Average Weekly Wage'].apply(lambda x: np.log10(x) if x > 0 else np.nan)
     df['IME-4 Count'] = df['IME-4 Count'].apply(lambda x: np.sqrt(x) if x > 0 else 0)
 
-    # Feature Engineering
+    # Feature Engineering - phase 1
     # Known date or not
     date_columns = ['Accident Date', 'Assembly Date', 'C-2 Date', 'C-3 Date', 'First Hearing Date', 'Age at Injury', 'Birth Year']
     for col in date_columns:
@@ -99,8 +125,92 @@ def pipeline(df):
     df['Gender'] = df['Gender'].replace({'X': 'Unknown'})
 
     # Feature Encoding
-
-    # Imputation that happen after data split (maybe create another function?)
+    # Open the JSON file and load it as a Python dictionary
+    with open('../Encoders/dic_4_encoding.json', 'r') as f:
+        enc_feat_dict = json.load(f)
     
-    # Columns Selection
+    # OneHotEncoder
+    # Load the OneHotEncoder
+    oh_encoder = joblib.load('./Encoders/OneHotEncoder.pkl')
+    # Apply OneHotEncoder to the specified categorical features
+    encoded_features = oh_encoder.transform(df[enc_feat_dict['OneHotEncoder']]).astype(int)
+    # Get the encoded feature names
+    encoded_feature_names = oh_encoder.get_feature_names_out(enc_feat_dict['OneHotEncoder'])
+    # Create a new DataFrame for the encoded features
+    encoded_df = pd.DataFrame(encoded_features, columns=encoded_feature_names, index=df.index)
+    # Combine the encoded features with the original DataFrame
+    df = pd.concat([df.drop(columns=enc_feat_dict['OneHotEncoder']), encoded_df], axis=1)
+
+    # Frequency Encoder
+    for column_name in enc_feat_dict['FrequencyEncoder']:
+        freq_mapping = joblib.load(f'./Encoders/{column_name}Encoder.pkl')
+        new_column_name = f"Enc {column_name}"
+        df[new_column_name] = df[column_name].map(freq_mapping)
+
+    # SineCosineEncoder
+    season_mapping = {"Winter": 0, "Spring": 1, "Summer": 2, "Fall": 3}
+    df = sine_cosine_encoding(df, enc_feat_dict['SineCosine'], season_mapping )
+
+
+    # Imputation na - phase 2
+    columns = ["Age at Injury","Average Weekly Wage"]
+    # Load the saved median values from the json file
+    with open('./OthersPipeline/medians.json', 'r') as f:
+        median_dict = json.load(f)
+    # Impute missing values for 'Age at Injury' and 'Average Weekly Wage'
+    for col in columns:
+        df[col] = df[col].fillna(median_dict[col])
+    df['Accident Date'] = pd.to_datetime(df['Accident Date'], errors='coerce')
+    condition = df['Birth Year'].isna() & df['Age at Injury'].notna() & df['Accident Date'].notna()
+    df.loc[condition, 'Birth Year'] = df.loc[condition, 'Accident Date'].dt.year - df.loc[condition, 'Age at Injury']
+    df.drop('Accident Date',axis=1,inplace=True)
+
+    # Feature Engineering - phase 2
+    median_wage = median_dict['Average Weekly Wage']
+    df['Relative_Wage'] = np.where(df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
+    financial_impact(df)
+
+    age_bins = [0, 25, 40, 55, 70, 100]  # Define bins
+    age_labels = [0, 1, 2, 3, 4]         # Define labels
+    df['Age_Group'] = pd.cut(
+        df['Age at Injury'], bins=age_bins, labels=age_labels, right=False, include_lowest=True
+    ).astype('category').cat.codes
+
+    # Scaling
+    scaler = joblib.load('./OthersPipeline/Scaler.pkl')
+    df[numerical_features]  = scaler.transform(df[numerical_features])  
+
+def predict(df, selected_features=selected_features):
+    """
+    Predict outcomes using a pre-trained model and map predictions to class names.
+    
+    Parameters:
+    - df (pd.DataFrame): The input data containing features for prediction.
+    - selected_features (list): A list of feature names to use for prediction.
+
+    Returns:
+    - list: A list of mapped class predictions.
+    """
+    # Import model
+    model = joblib.load('./openEnded/model.pkl')
+    
+    # Predict
+    pred = model.predict(df[selected_features])
+
+    # Define mapping
+    class_mapping = {
+        0: '1. CANCELLED', 
+        1: '2. NON-COMP',
+        2: '3. MED ONLY', 
+        3: '4. TEMPORARY',
+        4: '5. PPD SCH LOSS', 
+        5: '6. PPD NSL', 
+        6: '7. PTD', 
+        7: '8. DEATH'
+    }
+
+    # Map predictions to class labels
+    mapped_predictions = [class_mapping[label] for label in pred]
+
+    return mapped_predictions
 

@@ -308,21 +308,22 @@ def datatype_changes(df_list):
         float_to_int(df, ['Age at Injury', 'Birth Year'])
 
 
-def limit_feature(df_list, feature, minimum=None, maximum=None):
+def limit_feature(df_list, feature, minimum=None, maximum=None, verbose=True):
     for i, df in enumerate(df_list):
-        print(f"DataFrame {i+1}:")
-        print(f'Number of rows with 0: {len(df[df[feature] == 0])}.')
-        if minimum is not None:
-            print(f'Number of rows below {minimum}: {len(df[df[feature] < minimum])}.')
-        if maximum is not None:
-            print(f'Number of rows above {maximum}: {len(df[df[feature] > maximum])}.')
-        
+        if verbose:
+            print(f"DataFrame {i+1}:")
+            print(f'Number of rows with 0: {len(df[df[feature] == 0])}.')
+            if minimum is not None:
+                print(f'Number of rows below {minimum}: {len(df[df[feature] < minimum])}.')
+            if maximum is not None:
+                print(f'Number of rows above {maximum}: {len(df[df[feature] > maximum])}.')
+            print()
+            
         # Apply the limits to the feature, setting out-of-bounds values to NaN
         if minimum is not None:
             df[feature] = df[feature].where(df[feature] >= minimum, np.nan)
         if maximum is not None:
             df[feature] = df[feature].where(df[feature] <= maximum, np.nan)
-        print()
 
 def extract_dates_components(df_list, date_columns):
     # Loop through each dataframe
@@ -420,7 +421,7 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def frequency_encoding(df, column_name, test_df, verbose= False):
+def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False):
 
     new_column_name = f"Enc {column_name}"
 
@@ -436,11 +437,17 @@ def frequency_encoding(df, column_name, test_df, verbose= False):
     freq_mapping = {k: v for k, v in freq_mapping.items()} 
     freq_mapping["Unknown"] = freq_mapping.get("Unknown", default_value)
 
+    if save_encoding:
+        if save_encoding:
+            # Save the frequency mapping to a JSON file
+            with open(f'./Encoders/{column_name}Encoder', 'w') as f:
+                json.dump(freq_mapping, f)
+
     df[new_column_name] = df[column_name].map(freq_mapping)
     test_df[new_column_name] = test_df[column_name].map(freq_mapping).fillna(default_value)
 
 
-def apply_frequency_encoding(df, test_df):
+def apply_frequency_encoding(df, test_df, save_encoding=False):
     frequency_encoder_vars = [
         'County of Injury',
         'District Name',
@@ -452,7 +459,7 @@ def apply_frequency_encoding(df, test_df):
     ]
 
     for col in frequency_encoder_vars:
-        frequency_encoding(df, col, test_df)
+        frequency_encoding(df, col, test_df, save_encoding)
     
     df = df.drop(columns=frequency_encoder_vars)
     test_df = test_df.drop(columns=frequency_encoder_vars) 
@@ -487,11 +494,10 @@ def apply_one_hot_encoding(train_df, other_df, features, save_encoder=False):
         folder_path = "./Encoders/"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-            print(f"Folder '{folder_path}' created.")
         else:
-            print(f"Folder '{folder_path}' already exists.")
+            print()
         # Save encoder
-        joblib.dump(oh_enc, 'OneHotEncoder.pkl')
+        joblib.dump(oh_enc, './Encoders/OneHotEncoder.pkl')
 
     # Create encoded DataFrame with proper feature names
     encoded_feature_names = oh_enc.get_feature_names_out(features)
@@ -576,10 +582,24 @@ def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
 
     print(f"Results added to {filename}")
 
-def NA_imputer(train_df, test_df):
+def NA_imputer(train_df, test_df, save_median=False):
 
     columns = ["Age at Injury","Average Weekly Wage"]
     imputation_value  = train_df[columns].median()
+
+    # Save Median Values
+    if save_median:
+        # Create a dictionary to store the median values for future use
+        median_dict = imputation_value.to_dict()
+        # Create folder if it does not exist
+        folder_path = "./OthersPipeline/"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        else:
+            print('')
+        with open('./OthersPipeline/medians.json', 'w') as f:
+            json.dump(median_dict, f, indent=4)
+
     for col in columns:
             train_df[col] = train_df[col].fillna(imputation_value[col])
             test_df[col] = test_df[col].fillna(imputation_value[col])
@@ -599,9 +619,13 @@ def NA_imputer(train_df, test_df):
     test_df.drop('Accident Date',axis=1,inplace=True)
 
 
-def create_new_features(train_df, test_df):
-
-    median_wage = train_df['Average Weekly Wage'].median()
+def create_new_features(train_df, test_df, calculate=True):
+    if calculate:
+        median_wage = train_df['Average Weekly Wage'].median()
+    else:
+        with open('./OthersPipeline/medians.json', 'r') as f:
+            median_dict = json.load(f)
+        median_wage = median_dict['Average Weekly Wage']
     train_df['Relative_Wage'] = np.where(train_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
     test_df['Relative_Wage'] = np.where(test_df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
 
@@ -674,4 +698,8 @@ def save_scores(model_name, best_config, best_f1_score, hours_passed):
         file.write(json.dumps(output_data, indent=4))
         file.write("\n\n")  # Add a blank line between runs for readability
 
-
+def remove_outliers(df):
+    df = df[df['Age at Injury'].le(90) | df['Age at Injury'].isna()]
+    df = df[df['Average Weekly Wage'].lt(100000) | df['Average Weekly Wage'].isna()]
+    df = df[df['Birth Year'].gt(1938) | df['Birth Year'].isna()]
+    df = df[df['IME-4 Count'].lt(40)] # Has no missing values

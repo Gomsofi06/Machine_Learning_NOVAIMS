@@ -1,9 +1,9 @@
 # Imports
 import streamlit as st
 from streamlit_option_menu import option_menu
+from data_pipeline import *
 
 import pandas as pd
-
 
 def get_session_state():
     """
@@ -62,6 +62,12 @@ class GrantApp:
             </p>
             """, unsafe_allow_html=True 
         )
+
+    # Sample prediction function
+    def make_prediction(data_input):
+        pipeline(data_input)
+        predictions = predict(data_input)
+        return predictions
 
         
     def display_prediction(self):
@@ -144,6 +150,10 @@ class GrantApp:
                 except Exception as e:
                     st.markdown(f'<p style="color: red; font-size: 16px;">An error occurred while processing the input data: {e}</p>', unsafe_allow_html=True)
 
+        # Create a Predict button
+        if st.button("Predict"):
+            prediction = make_prediction(data_input)  # Call prediction function
+            st.success(f"Prediction: {prediction}")
 
     def run(self):
             """

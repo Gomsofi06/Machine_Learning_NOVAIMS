@@ -48,7 +48,8 @@ X = train_df.drop(["Claim Injury Type Encoded"], axis = 1)
 y = train_df["Claim Injury Type Encoded"]
 
 # Split the data
-X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.25, stratify = y, shuffle = True)
+random_state = 68+1
+X_train, X_val, y_train, y_val = train_test_split(X,y, test_size = 0.25, stratify = y, shuffle = True, random_state=random_state)
 
 
 # Preprocess the data
@@ -71,16 +72,17 @@ y_val_ray = ray.put(y_val)
 search_space = {
     # Model Dependent
     "n_estimators": tune.grid_search([100, 200, 300]),         
-    "learning_rate": tune.grid_search([0.01, 0.05, 0.1, 1.5]),     
+    "learning_rate": tune.grid_search([0.01, 0.05, 0.1]),   # [0.01, 0.05, 0.1, 1.5]  
     "max_depth": tune.grid_search([5, 7]),                              
     "subsample": tune.grid_search([0.6, 0.9]),            
     "colsample_bytree": tune.grid_search([0.6, 0.9]),
-    "reg_lambda": tune.grid_search([1, 10, 100]),     
-    "gamma": tune.grid_search([0, 0.1, 0.3]),      #[0, 0.1, 0.3]            
+    "reg_lambda": tune.grid_search([10, 100]),     # [1,10 ,100]
+    "gamma": tune.grid_search([0.1, 0.3]),      #[0, 0.1, 0.3]            
     "grow_policy": tune.grid_search(["depthwise", "lossguide"]),
     
     # Always Use
-    "use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"])
+    "use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
+    "random_state":random_state
 }
 
 # Create Model
@@ -97,6 +99,9 @@ def XGBBoosted_GridSearch(config):
     elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
         rus = RandomUnderSampler()
         X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
+
+    X_train_gridsearch = X_train_gridsearch.drop("Average Weekly Wage", axis = 1)
+    X_val_gridsearch = X_val_gridsearch.drop("Average Weekly Wage", axis = 1)
     
     model = XGBClassifier(
                         n_estimators=config["n_estimators"],        
@@ -109,8 +114,8 @@ def XGBBoosted_GridSearch(config):
                         grow_policy=config["grow_policy"],          
                         objective="multi:softmax",                  
                         num_class=8,                                
-                        eval_metric="merror",                       
-                        early_stopping_rounds=50,                   
+                        eval_metric="merror",   
+                        random_state = config["random_state"],                                      
                         verbosity=0                                 
                     )
 
