@@ -123,6 +123,18 @@ def pipeline(df):
 
 
     # Imputation na - phase 2
+    columns = ["Age at Injury","Average Weekly Wage"]
+    # Load the saved median values from the json file
+    with open('./OthersPipeline/medians.json', 'r') as f:
+        median_dict = json.load(f)
+    # Impute missing values for 'Age at Injury' and 'Average Weekly Wage'
+    for col in columns:
+        df[col] = df[col].fillna(median_dict[col])
+    df['Accident Date'] = pd.to_datetime(df['Accident Date'], errors='coerce')
+    condition = df['Birth Year'].isna() & df['Age at Injury'].notna() & df['Accident Date'].notna()
+    df.loc[condition, 'Birth Year'] = df.loc[condition, 'Accident Date'].dt.year - df.loc[condition, 'Age at Injury']
+    df.drop('Accident Date',axis=1,inplace=True)
+
     
     # Columns Selection
 
