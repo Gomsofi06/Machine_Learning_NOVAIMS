@@ -145,6 +145,12 @@ def pipeline(df, numerical_features=numerical_features):
     for column_name in enc_feat_dict['FrequencyEncoder']:
         with open(f'../Encoders/{column_name}Encoder.json', 'r') as f:
             freq_mapping = json.load(f)
+        # Define new column name
+        new_column_name = f"Enc {column_name}"
+        # Replace values not in mapping keys with "Unknown"
+        unknown_key = "Unknown"
+        df[column_name] = df[column_name].apply(lambda x: x if str(x) in freq_mapping else unknown_key)
+        # Map the frequency values
         new_column_name = f"Enc {column_name}"
         df[new_column_name] = df[column_name].map(freq_mapping)
 
