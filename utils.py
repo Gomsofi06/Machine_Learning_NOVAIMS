@@ -420,7 +420,7 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def frequency_encoding(df, column_name, test_df, verbose= False):
+def frequency_encoding(df, column_name, test_df, verbose= False, save_encoding=False):
 
     new_column_name = f"Enc {column_name}"
 
@@ -435,6 +435,12 @@ def frequency_encoding(df, column_name, test_df, verbose= False):
     default_value = 0 
     freq_mapping = {k: v for k, v in freq_mapping.items()} 
     freq_mapping["Unknown"] = freq_mapping.get("Unknown", default_value)
+
+    if save_encoding:
+        if save_encoding:
+            # Save the frequency mapping to a JSON file
+            with open(f'./Encoders/{column_name}', 'w') as f:
+                json.dump(freq_mapping, f)
 
     df[new_column_name] = df[column_name].map(freq_mapping)
     test_df[new_column_name] = test_df[column_name].map(freq_mapping).fillna(default_value)
