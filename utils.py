@@ -17,6 +17,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import holidays
 from sklearn.preprocessing import OneHotEncoder
 from scipy.cluster.hierarchy import linkage, dendrogram
+import joblib
 
 
 # Color of plots
@@ -458,34 +459,49 @@ def apply_frequency_encoding(df, test_df):
 
     return df, test_df
 
-def apply_one_hot_encoding(train_df, other_df, features):
+def apply_one_hot_encoding(train_df, other_df, features, save_encoder=False):
     """
-    Applies one-hot encoding to the specified features in the DataFrame.
+    Applies one-hot encoding to the specified features in the DataFrame,
+    and optionally saves the encoder categories to a JSON file.
 
     Parameters:
-    - df (pd.DataFrame): The input DataFrame.
-    - features (list): List of column names in the DataFrame to be encoded.
-    - drop_first (bool): Whether to drop the first category to avoid multicollinearity. Default is True.
+    - train_df (pd.DataFrame): The training DataFrame.
+    - other_df (pd.DataFrame): Another DataFrame to apply the same encoding.
+    - features (list): List of column names to be encoded.
+    - save_encoder (Boolean): Optional. Save encoder flag.
 
     Returns:
-    - pd.DataFrame: The DataFrame with the specified features one-hot encoded.
+    - pd.DataFrame: Transformed training DataFrame.
+    - pd.DataFrame: Transformed other DataFrame.
     """
-    # Initialize the encoder with drop_first option
+    # Initialize the encoder with drop='first' option for avoiding multicollinearity
     oh_enc = OneHotEncoder(drop='first', sparse_output=False)
-    
-    # Fit and transform the selected features
+
+    # Fit the encoder on the train dataset and transform both datasets
     train_encoded_features = oh_enc.fit_transform(train_df[features]).astype(int)
     other_encoded_features = oh_enc.transform(other_df[features]).astype(int)
-    
-    # Create a new DataFrame for the encoded features
+
+    # Save the encoder
+    if save_encoder:
+        # Create folder if it does not exist
+        folder_path = "./Encoders/"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            print(f"Folder '{folder_path}' created.")
+        else:
+            print(f"Folder '{folder_path}' already exists.")
+        # Save encoder
+        joblib.dump(oh_enc, 'OneHotEncoder.pkl')
+
+    # Create encoded DataFrame with proper feature names
     encoded_feature_names = oh_enc.get_feature_names_out(features)
     train_encoded_df = pd.DataFrame(train_encoded_features, columns=encoded_feature_names, index=train_df.index)
     other_encoded_df = pd.DataFrame(other_encoded_features, columns=encoded_feature_names, index=other_df.index)
-    
-    # Combine the encoded features with the original DataFrame (dropping the original columns)
+
+    # Combine the encoded features with the rest of the original DataFrames (dropping the original features)
     new_train = pd.concat([train_df.drop(columns=features), train_encoded_df], axis=1)
     new_other = pd.concat([other_df.drop(columns=features), other_encoded_df], axis=1)
-    
+
     return new_train, new_other
 
 
