@@ -112,7 +112,10 @@ def pipeline(df):
     df = pd.concat([df.drop(columns=enc_feat_dict['OneHotEncoder']), encoded_df], axis=1)
 
     # Frequency Encoder
-    '''To do'''
+    for column_name in enc_feat_dict['FrequencyEncoder']:
+        freq_mapping = joblib.load(f'./Encoders/{column_name}.pkl')
+        new_column_name = f"Enc {column_name}"
+        df[new_column_name] = df[column_name].map(freq_mapping)
 
     # SineCosineEncoder
     season_mapping = {"Winter": 0, "Spring": 1, "Summer": 2, "Fall": 3}
