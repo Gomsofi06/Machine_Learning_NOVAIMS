@@ -3,6 +3,7 @@
 /catboost_info
 /eda_data
 /Encoders
+/OthersPipeline
 
 test.py 
 
