@@ -151,25 +151,36 @@ def pipeline(df, numerical_features):
     df[numerical_features]  = scaler.transform(df[numerical_features])  
 
 def predict(df, selected_features):
+    """
+    Predict outcomes using a pre-trained model and map predictions to class names.
+    
+    Parameters:
+    - df (pd.DataFrame): The input data containing features for prediction.
+    - selected_features (list): A list of feature names to use for prediction.
+
+    Returns:
+    - list: A list of mapped class predictions.
+    """
     # Import model
     model = joblib.load('./openEnded/model.pkl')
+    
     # Predict
     pred = model.predict(df[selected_features])
 
     # Define mapping
     class_mapping = {
-        0:'1. CANCELLED', 
-        1:'2. NON-COMP',
-        2:'3. MED ONLY', 
-        3:'4. TEMPORARY',
-        4:'5. PPD SCH LOSS', 
-        5:'6. PPD NSL', 
-        6:'7. PTD', 
-        7:'8. DEATH'
+        0: '1. CANCELLED', 
+        1: '2. NON-COMP',
+        2: '3. MED ONLY', 
+        3: '4. TEMPORARY',
+        4: '5. PPD SCH LOSS', 
+        5: '6. PPD NSL', 
+        6: '7. PTD', 
+        7: '8. DEATH'
     }
 
-    # Use the values from class_mapping as the target names
-    target_names = list(class_mapping.values())
+    # Map predictions to class labels
+    mapped_predictions = [class_mapping[label] for label in pred]
 
-    return pred
+    return mapped_predictions
 
