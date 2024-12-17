@@ -692,4 +692,8 @@ def save_scores(model_name, best_config, best_f1_score, hours_passed):
         file.write(json.dumps(output_data, indent=4))
         file.write("\n\n")  # Add a blank line between runs for readability
 
-
+def remove_outliers(df):
+    df = df[df['Age at Injury'].le(90) | df['Age at Injury'].isna()]
+    df = df[df['Average Weekly Wage'].lt(100000) | df['Average Weekly Wage'].isna()]
+    df = df[df['Birth Year'].gt(1938) | df['Birth Year'].isna()]
+    df = df[df['IME-4 Count'].lt(40)] # Has no missing values
