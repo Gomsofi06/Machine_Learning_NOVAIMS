@@ -308,21 +308,22 @@ def datatype_changes(df_list):
         float_to_int(df, ['Age at Injury', 'Birth Year'])
 
 
-def limit_feature(df_list, feature, minimum=None, maximum=None):
+def limit_feature(df_list, feature, minimum=None, maximum=None, verbose=True):
     for i, df in enumerate(df_list):
-        print(f"DataFrame {i+1}:")
-        print(f'Number of rows with 0: {len(df[df[feature] == 0])}.')
-        if minimum is not None:
-            print(f'Number of rows below {minimum}: {len(df[df[feature] < minimum])}.')
-        if maximum is not None:
-            print(f'Number of rows above {maximum}: {len(df[df[feature] > maximum])}.')
-        
+        if verbose:
+            print(f"DataFrame {i+1}:")
+            print(f'Number of rows with 0: {len(df[df[feature] == 0])}.')
+            if minimum is not None:
+                print(f'Number of rows below {minimum}: {len(df[df[feature] < minimum])}.')
+            if maximum is not None:
+                print(f'Number of rows above {maximum}: {len(df[df[feature] > maximum])}.')
+            print()
+            
         # Apply the limits to the feature, setting out-of-bounds values to NaN
         if minimum is not None:
             df[feature] = df[feature].where(df[feature] >= minimum, np.nan)
         if maximum is not None:
             df[feature] = df[feature].where(df[feature] <= maximum, np.nan)
-        print()
 
 def extract_dates_components(df_list, date_columns):
     # Loop through each dataframe
