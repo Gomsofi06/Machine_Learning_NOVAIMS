@@ -35,7 +35,9 @@ selected_features = ['Age at Injury', 'Birth Year', 'IME-4 Count', 'Number of De
        'Age_Group']
 
 def pipeline(df, numerical_features=numerical_features):
-    '''Check duplicate IDs'''
+    # Rename the column 'WCIO Part Of Body Code' to 'New Column Name'
+    df.rename(columns={'WCIO Part of Body Code': 'WCIO Part Of Body Cod'}, inplace=True)
+
     # Check datatypes
     datatype_changes([df])
 
