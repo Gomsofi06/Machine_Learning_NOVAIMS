@@ -81,7 +81,7 @@ search_space = {
     #"grow_policy": tune.grid_search(["depthwise", "lossguide"]),
     
     # Always Use
-    #"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
+    ###"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
     "random_state":random_state
 }
 
@@ -91,14 +91,6 @@ def XGBBoosted_GridSearch(config):
     y_train_gridsearch = ray.get(y_train_ray)
     X_val_gridsearch = ray.get(X_val_ray)
     y_val_gridsearch = ray.get(y_val_ray)
-
-    # SMOTE or RandomUnderSampling
-    #if "use_SMOTE or use_RandomUnderSampler" == "SMOTE":
-    #    smote = SMOTE()
-    #    X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    #elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
-    #    rus = RandomUnderSampler()
-    #    X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
 
     X_train_gridsearch = X_train_gridsearch.drop("Average Weekly Wage", axis = 1)
     X_val_gridsearch = X_val_gridsearch.drop("Average Weekly Wage", axis = 1)

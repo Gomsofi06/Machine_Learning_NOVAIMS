@@ -218,3 +218,34 @@
     "time": 0.48628795802593233
 }
 
+{
+    "experiment_count": 16,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 700,
+        "learning_rate": 0.11,
+        "depth": 6,
+        "l2_leaf_reg": 4,
+        "bagging_temperature": 0.4,
+        "random_state": 69
+    },
+    "best_f1_score": 0.4102723453681848,
+    "time": 0.29586041298177507
+}
+
+{
+    "experiment_count": 17,
+    "model_name": "XGBoost",
+    "best_trial_config": {
+        "n_estimators": 200,
+        "learning_rate": 0.1,
+        "max_depth": 7,
+        "subsample": 0.9,
+        "colsample_bytree": 0.9,
+        "gamma": 0.3,
+        "random_state": 69
+    },
+    "best_f1_score": 0.4208375516267516,
+    "time": 1.2672664611869389
+}
+

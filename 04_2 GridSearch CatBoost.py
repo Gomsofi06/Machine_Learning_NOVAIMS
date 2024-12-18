@@ -81,7 +81,7 @@ search_space = {
     #"grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
     
     # Always Use
-    #"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
+    ###"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
     "random_state":random_state 
 }
 
@@ -91,14 +91,6 @@ def CatBoosted_GridSearch(config):
     y_train_gridsearch = ray.get(y_train_ray)
     X_val_gridsearch = ray.get(X_val_ray)
     y_val_gridsearch = ray.get(y_val_ray)
-
-    # SMOTE or RandomUnderSampling
-    #if "use_SMOTE or use_RandomUnderSampler" == "SMOTE":
-    #    smote = SMOTE()
-    #    X_train_gridsearch, y_train_gridsearch = smote.fit_resample(X_train_gridsearch, y_train_gridsearch)
-    #elif "use_SMOTE or use_RandomUnderSampler" == "RandomUnderSampler":
-    #    rus = RandomUnderSampler()
-    #    X_train_gridsearch, y_train_gridsearch = rus.fit_resample(X_train_gridsearch, y_train_gridsearch)
     
     X_train_gridsearch = X_train_gridsearch.drop("Average Weekly Wage", axis = 1)
     X_val_gridsearch = X_val_gridsearch.drop("Average Weekly Wage", axis = 1)
@@ -120,16 +112,13 @@ def CatBoosted_GridSearch(config):
     model.fit(X_train_gridsearch,y_train_gridsearch)
     
     # Predict on validation data
-    y_pred_train = model.predict(X_train_gridsearch)
     y_pred = model.predict(X_val_gridsearch)
 
     # Compute F1 score
-    f1_train = f1_score(y_train_gridsearch, y_pred_train, average="macro")
-    f1_val = f1_score(y_val_gridsearch, y_pred, average="macro")
+    f1 = f1_score(y_val_gridsearch, y_pred, average="macro")
 
     # Report results to Ray Tune
-    session.report({"f1_score": f1_train})
-    session.report({"f1_score": f1_val})
+    session.report({"f1_score": f1})
 
 
 # Run Grid Search
