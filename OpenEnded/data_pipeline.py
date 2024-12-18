@@ -36,7 +36,8 @@ selected_features = ['Age at Injury', 'Birth Year', 'IME-4 Count', 'Number of De
 
 def pipeline(df, numerical_features=numerical_features):
     # Rename the column 'WCIO Part Of Body Code' to 'WCIO Part Of Body Code'
-    df.rename(columns={'WCIO Part of Body Code': 'WCIO Part Of Body Code'}, inplace=True)
+    if 'WCIO Part of Body Code' in df.columns:
+        df.rename(columns={'WCIO Part of Body Code': 'WCIO Part Of Body Code'}, inplace=True)
 
     # Check datatypes
     datatype_changes([df])
