@@ -35,7 +35,10 @@ selected_features = ['Age at Injury', 'Birth Year', 'IME-4 Count', 'Number of De
        'Age_Group']
 
 def pipeline(df, numerical_features=numerical_features):
-    '''Check duplicate IDs'''
+    # Rename the column 'WCIO Part Of Body Code' to 'WCIO Part Of Body Code'
+    if 'WCIO Part of Body Code' in df.columns:
+        df.rename(columns={'WCIO Part of Body Code': 'WCIO Part Of Body Code'}, inplace=True)
+
     # Check datatypes
     datatype_changes([df])
 
@@ -66,6 +69,12 @@ def pipeline(df, numerical_features=numerical_features):
     # Apply transformations
     df['Average Weekly Wage'] = df['Average Weekly Wage'].apply(lambda x: np.log10(x) if x > 0 else np.nan)
     df['IME-4 Count'] = df['IME-4 Count'].apply(lambda x: np.sqrt(x) if x > 0 else 0)
+
+    # Replace na with Unknwon
+    # Select code columns
+    code_cols = df.columns[df.columns.str.contains('Code')]
+    for col in code_cols:
+        df[col] = df[col].replace('nan', 'Unknown')
 
     # Feature Engineering - phase 1
     # Known date or not
@@ -156,9 +165,8 @@ def pipeline(df, numerical_features=numerical_features):
 
     # SineCosineEncoder
     season_mapping = {"Winter": 0, "Spring": 1, "Summer": 2, "Fall": 3}
-    df = sine_cosine_encoding(df, enc_feat_dict['SineCosine'], season_mapping )
-
-
+    sine_cosine_encoding(df, enc_feat_dict['SineCosine'][0], season_mapping)
+    
     # Imputation na - phase 2
     columns = ["Age at Injury","Average Weekly Wage"]
     # Load the saved median values from the json file
@@ -201,7 +209,7 @@ def predict(df, selected_features=selected_features):
     - list: A list of mapped class predictions.
     """
     # Import model
-    model = joblib.load('./openEnded/final_model.pkl')
+    model = joblib.load('../OpenEnded/final_model.pkl')
     
     # Predict
     pred = model.predict(df[selected_features])
