@@ -82,7 +82,7 @@ search_space = {
     
     # Always Use
     #"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
-    #"random_state":random_state
+    "random_state":random_state
 }
 
 # Create Model

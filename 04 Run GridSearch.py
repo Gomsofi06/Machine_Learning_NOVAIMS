@@ -5,7 +5,7 @@ python_executable = "C:/Users/ruipb/Desktop/Master Projects/ML Project/Machine_L
 
 # Controll panel
 run_catboost = False
-run_xgboost = False
+run_xgboost = True
 run_random_search = False
 
 if run_random_search:
