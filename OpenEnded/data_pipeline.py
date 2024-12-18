@@ -166,8 +166,7 @@ def pipeline(df, numerical_features=numerical_features):
     # SineCosineEncoder
     season_mapping = {"Winter": 0, "Spring": 1, "Summer": 2, "Fall": 3}
     sine_cosine_encoding(df, enc_feat_dict['SineCosine'][0], season_mapping)
-
-
+    
     # Imputation na - phase 2
     columns = ["Age at Injury","Average Weekly Wage"]
     # Load the saved median values from the json file
