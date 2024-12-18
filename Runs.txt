@@ -162,3 +162,59 @@
     "time": 1.833667203452852
 }
 
+{
+    "experiment_count": 12,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 600,
+        "learning_rate": 0.1,
+        "depth": 6,
+        "l2_leaf_reg": 5,
+        "bagging_temperature": 0.4,
+        "random_state": 69
+    },
+    "best_f1_score": 0.41631607800859094,
+    "time": 1.9093577528662151
+}
+
+{
+    "experiment_count": 13,
+    "model_name": "CatBoostClassifier RandomSearch, None",
+    "best_trial_config": {
+        "learning_rate": 0.05,
+        "l2_leaf_reg": 9,
+        "iterations": 500,
+        "depth": 9
+    },
+    "best_f1_score": 0.393931739017879,
+    "time": 0.48628795802593233
+}
+
+{
+    "experiment_count": 14,
+    "model_name": "XGBClassifier RandomSearch, None",
+    "best_trial_config": {
+        "subsample": 1.0,
+        "n_estimators": 300,
+        "max_depth": 7,
+        "learning_rate": 0.1,
+        "gamma": 0,
+        "colsample_bytree": 0.8
+    },
+    "best_f1_score": 0.40456589359839495,
+    "time": 0.48628795802593233
+}
+
+{
+    "experiment_count": 15,
+    "model_name": "DecisionTreeClassifier RandomSearch, None",
+    "best_trial_config": {
+        "min_samples_split": 10,
+        "min_samples_leaf": 4,
+        "max_depth": 20,
+        "criterion": "entropy"
+    },
+    "best_f1_score": 0.3555969730414675,
+    "time": 0.48628795802593233
+}
+

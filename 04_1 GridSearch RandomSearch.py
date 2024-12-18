@@ -48,7 +48,6 @@ param_grids = {
         "subsample": [0.6, 0.8, 1.0],
         "colsample_bytree": [0.6, 0.8, 1.0],
         "gamma": [0, 0.1, 0.5, 1],
-        "lambda": [1, 3, 5],
     },
     "DecisionTreeClassifier": {
         "max_depth": [None, 10, 20, 30],
@@ -85,11 +84,13 @@ scaler_train = StandardScaler()
 X_train[numerical_features] = scaler_train.fit_transform(X_train[numerical_features])
 X_val[numerical_features] = scaler_train.transform(X_val[numerical_features])
 
+# The model CatBoost and XGBoost don't do well on the dataset with feature selection
 drop_list = ["Average Weekly Wage"]
-if feature_selection != None:
-    for col in X_train.columns:
-        if col not in feature_selection:
-            drop_list.append(col)
+#if feature_selection != None:
+#    for col in X_train.columns:
+#        if col not in feature_selection:
+#            drop_list.append(col)
+
 X_train = X_train.drop(drop_list, axis=1)
 X_val = X_val.drop(drop_list, axis=1)
 
