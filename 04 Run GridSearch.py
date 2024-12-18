@@ -4,7 +4,7 @@ import subprocess
 python_executable = "C:/Users/ruipb/Desktop/Master Projects/ML Project/Machine_Learning_NOVAIMS/env/Scripts/python.exe" # Change this path to the path of your Python executable
 
 # Controll panel
-run_catboost = False
+run_catboost = True
 run_xgboost = True
 run_random_search = False
 

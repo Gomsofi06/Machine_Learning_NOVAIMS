@@ -73,10 +73,10 @@ y_val_ray = ray.put(y_val)
 # Define the search space
 search_space = {
     # Model Dependent
-    "iterations": tune.grid_search([400,500,600]), #[ 300, 400, 500, 600, 800] 
-    "learning_rate": tune.grid_search([0.03,0.05, 0.1, 1.5]),  #[0.03, 0.05, 0.07, 0.1,0.3,0.4,0.5,0.6]
-    "depth": tune.grid_search([5, 6, 7]),        #[4,6,9]   
-    "l2_leaf_reg": tune.grid_search([5, 6, 7]),   #[4,6,9]                
+    "iterations": tune.grid_search([600, 650, 700]), #[ 300, 400, 500, 600,650, 700, 800] 
+    "learning_rate": tune.grid_search([0.09, 0.1, 0.11]),  #[0.03, 0.05, 0.07, 0.1,0.11,0.3,0.4,0.5,0.6]
+    "depth": tune.grid_search([6]),        #[4,5,6,7,9]   
+    "l2_leaf_reg": tune.grid_search([4, 5]),   #[4,5,6,9]                
     "bagging_temperature": tune.grid_search([0.4]), #[0.2, 0.4, 0.45, 0.5, 0.8]      
     #"grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
     

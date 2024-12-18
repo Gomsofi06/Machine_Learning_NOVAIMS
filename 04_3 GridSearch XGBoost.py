@@ -72,13 +72,13 @@ y_val_ray = ray.put(y_val)
 
 search_space = {
     # Model Dependent
-    "n_estimators": tune.grid_search([100, 200, 300]),         
-    "learning_rate": tune.grid_search([0.03, 0.05, 0.1]),   # [0.01, 0.03, 0.05, 0.1]  
-    "max_depth": tune.grid_search([5, 7]),                              
-    "subsample": tune.grid_search([0.6, 0.9]),            
-    "colsample_bytree": tune.grid_search([0.6, 0.9]),
-    "gamma": tune.grid_search([0.1, 0.3, 0.6]),      #[0, 0.1, 0.3]            
-    "grow_policy": tune.grid_search(["depthwise", "lossguide"]),
+    "n_estimators": tune.grid_search([200, 250, 300]),         
+    "learning_rate": tune.grid_search([0.07, 0.1, 1.2]),   # [0.01, 0.03, 0.05, 0.1]  
+    "max_depth": tune.grid_search([6, 7, 9]),                              
+    "subsample": tune.grid_search([0.8, 0.9]),            
+    "colsample_bytree": tune.grid_search([0.8, 0.9]),
+    "gamma": tune.grid_search([0, 0.3]),      #[0, 0.1, 0.3]           
+    #"grow_policy": tune.grid_search(["depthwise", "lossguide"]),
     
     # Always Use
     #"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
@@ -109,8 +109,8 @@ def XGBBoosted_GridSearch(config):
                         max_depth=config["max_depth"],                          
                         subsample=config["subsample"],              
                         colsample_bytree=config["colsample_bytree"],
-                        gamma=config["gamma"],                      
-                        grow_policy=config["grow_policy"],          
+                        gamma=config["gamma"],                     
+                        #grow_policy=config["grow_policy"],          
                         objective="multi:softmax",                  
                         num_class=8,                                
                         eval_metric="merror",   
