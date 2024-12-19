@@ -44,6 +44,8 @@ os.environ["RAY_FUNCTION_SIZE_ERROR_THRESHOLD"] = "300000000"  # In bytes
 # Load the data
 train_df = pd.read_csv("./preprocessed_data/train_data.csv", index_col="Claim Identifier")
 
+feature_selection = essential_features
+
 X = train_df.drop(["Claim Injury Type Encoded"], axis = 1)
 y = train_df["Claim Injury Type Encoded"]
 
@@ -63,6 +65,12 @@ scaler_train = StandardScaler()
 X_train[numerical_features] = scaler_train.fit_transform(X_train[numerical_features])
 X_val[numerical_features] = scaler_train.transform(X_val[numerical_features])
 
+drop_list = ["Average Weekly Wage"]
+if feature_selection != None:
+    for col in X_train.columns:
+        if col not in feature_selection:
+            drop_list.append(col)
+
 # Save the data in a way ray understands
 X_train_ray = ray.put(X_train)
 y_train_ray = ray.put(y_train)
@@ -73,11 +81,11 @@ y_val_ray = ray.put(y_val)
 # Define the search space
 search_space = {
     # Model Dependent
-    "iterations": tune.grid_search([800,900,1000]), #[ 300, 400, 500, 600,650, 700, 800] 
-    "learning_rate": tune.grid_search([0.1, 0.11]),  #[0.03, 0.05, 0.07, 0.1,0.11,0.3,0.4,0.5,0.6]
-    "depth": tune.grid_search([6]),        #[4,5,6,7,9]   
-    "l2_leaf_reg": tune.grid_search([4, 5]),   #[4,5,6,9]                
-    "bagging_temperature": tune.grid_search([0.4]), #[0.2, 0.4, 0.45, 0.5, 0.8]      
+    "iterations": tune.grid_search([300,500]), #[ 300, 400, 500, 600,650, 700, 800] 
+    "learning_rate": tune.grid_search([0.05,0.7,0.1]),  #[0.03, 0.05, 0.07, 0.1,0.11,0.3,0.4,0.5,0.6]
+    "depth": tune.grid_search([5, 6]),        #[4,5,6,7,9]   
+    "l2_leaf_reg": tune.grid_search([6,9]),   #[4,5,6,9]                
+    "bagging_temperature": tune.grid_search([0.4,0.7]), #[0.2, 0.4, 0.45, 0.5, 0.8]      
     #"grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
     
     # Always Use
