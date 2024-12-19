@@ -249,3 +249,33 @@
     "time": 1.2672664611869389
 }
 
+{
+    "experiment_count": 18,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 800,
+        "learning_rate": 0.11,
+        "depth": 6,
+        "l2_leaf_reg": 4,
+        "bagging_temperature": 0.4,
+        "random_state": 69
+    },
+    "best_f1_score": 0.41249956621810285,
+    "time": 0.213998696870274
+}
+
+{
+    "experiment_count": 19,
+    "model_name": "CatBoost",
+    "best_trial_config": {
+        "iterations": 1000,
+        "learning_rate": 0.11,
+        "depth": 6,
+        "l2_leaf_reg": 5,
+        "bagging_temperature": 0.4,
+        "random_state": 69
+    },
+    "best_f1_score": 0.41649127085275095,
+    "time": 0.27144851558738287
+}
+

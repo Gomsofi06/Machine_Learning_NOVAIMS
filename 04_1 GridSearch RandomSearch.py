@@ -57,7 +57,7 @@ param_grids = {
     },
 }
 
-feature_selection = None
+feature_selection = essential_features
 
 X = train_df.drop(["Claim Injury Type Encoded"], axis = 1)
 y = train_df["Claim Injury Type Encoded"]
@@ -66,7 +66,7 @@ y = train_df["Claim Injury Type Encoded"]
 models = {
     "CatBoostClassifier": CatBoostClassifier(verbose=0, random_state=random_state,custom_metric='F1'),
     "XGBClassifier": XGBClassifier(objective="multi:softmax", num_class=8, eval_metric="merror", random_state=random_state),
-    "DecisionTreeClassifier": DecisionTreeClassifier(random_state=random_state),
+    #"DecisionTreeClassifier": DecisionTreeClassifier(random_state=random_state),
 }
 
 # Split the data
@@ -86,10 +86,10 @@ X_val[numerical_features] = scaler_train.transform(X_val[numerical_features])
 
 # The model CatBoost and XGBoost don't do well on the dataset with feature selection
 drop_list = ["Average Weekly Wage"]
-#if feature_selection != None:
-#    for col in X_train.columns:
-#        if col not in feature_selection:
-#            drop_list.append(col)
+if feature_selection != None:
+    for col in X_train.columns:
+        if col not in feature_selection:
+            drop_list.append(col)
 
 X_train = X_train.drop(drop_list, axis=1)
 X_val = X_val.drop(drop_list, axis=1)
