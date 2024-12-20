@@ -327,7 +327,7 @@
     "model_name": "XGBoost",
     "best_trial_config": {
         "n_estimators": 200,
-        "learning_rate": 0.1,
+        "learning_rate": 0.2,
         "max_depth": 7,
         "subsample": 0.9,
         "colsample_bytree": 0.9,
