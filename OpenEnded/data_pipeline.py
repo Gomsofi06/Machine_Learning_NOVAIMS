@@ -2,11 +2,19 @@
 import pandas as pd
 
 # Others
+import os
 import sys
 # setting path
-sys.path.append('../')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils import *
 from utils_dicts import *
+
+# Define the base directory for the encoders
+encoders_base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Encoders'))
+# Define the base directory for the others pipeline
+others_pipeline_base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'OthersPipeline'))
+# Define the base directory for the models
+models_base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'OpenEnded'))
 
 
 selected_features = ['Age at Injury', 'Average Weekly Wage', 'Birth Year', 'IME-4 Count',
@@ -135,12 +143,12 @@ def pipeline(df, n_fold,  numerical_features=numerical_features):
 
     # Feature Encoding
     # Open the JSON file and load it as a Python dictionary
-    with open('../Encoders/dic_4_encoding.json', 'r') as f:
+    with open(os.path.join(encoders_base_dir, 'dic_4_encoding.json'), 'r') as f:
         enc_feat_dict = json.load(f)
     
     # OneHotEncoder
     # Load the OneHotEncoder
-    oh_encoder = joblib.load('../Encoders/OneHotEncoder.pkl')
+    oh_encoder = joblib.load(os.path.join(encoders_base_dir, 'OneHotEncoder.pkl'))
     # Apply OneHotEncoder to the specified categorical features
     encoded_features = oh_encoder.transform(df[enc_feat_dict['OneHotEncoder']]).astype(int)
     # Get the encoded feature names
@@ -150,27 +158,26 @@ def pipeline(df, n_fold,  numerical_features=numerical_features):
     # Combine the encoded features with the original DataFrame
     df = pd.concat([df.drop(columns=enc_feat_dict['OneHotEncoder']), encoded_df], axis=1)
 
+
     # Frequency Encoder
     for column_name in enc_feat_dict['FrequencyEncoder']:
-        with open(f'../Encoders/{column_name}Encoder_{n_fold}.json', 'r') as f:
+        with open(os.path.join(encoders_base_dir, f'{column_name}Encoder_{n_fold}.json'), 'r') as f:
             freq_mapping = json.load(f)
         # Define new column name
         new_column_name = f"Enc {column_name}"
         # Replace values not in mapping keys with "Unknown"
         unknown_key = "Unknown"
-        df[column_name] = df[column_name].apply(lambda x: x if str(x) in freq_mapping else unknown_key)
-        # Map the frequency values
-        new_column_name = f"Enc {column_name}"
-        df[new_column_name] = df[column_name].map(freq_mapping)
+        # Apply the frequency encoding
+        df[new_column_name] = df[column_name].map(freq_mapping).fillna(freq_mapping.get(unknown_key, 0))
 
     # SineCosineEncoder
     season_mapping = {"Winter": 0, "Spring": 1, "Summer": 2, "Fall": 3}
     sine_cosine_encoding(df, enc_feat_dict['SineCosine'][0], season_mapping)
     
     # Imputation na - phase 2
-    columns = ["Age at Injury","Average Weekly Wage"]
+    columns = ["Age at Injury", "Average Weekly Wage"]
     # Load the saved median values from the json file
-    with open(f'../OthersPipeline/medians_{n_fold}.json', 'r') as f:
+    with open(os.path.join(others_pipeline_base_dir, f'medians_{n_fold}.json'), 'r') as f:
         median_dict = json.load(f)
     # Impute missing values for 'Age at Injury' and 'Average Weekly Wage'
     for col in columns:
@@ -178,11 +185,11 @@ def pipeline(df, n_fold,  numerical_features=numerical_features):
     df['Accident Date'] = pd.to_datetime(df['Accident Date'], errors='coerce')
     condition = df['Birth Year'].isna() & df['Age at Injury'].notna() & df['Accident Date'].notna()
     df.loc[condition, 'Birth Year'] = df.loc[condition, 'Accident Date'].dt.year - df.loc[condition, 'Age at Injury']
-    df.drop('Accident Date',axis=1,inplace=True)
+    df.drop('Accident Date', axis=1, inplace=True)
 
     # Feature Engineering - phase 2
     median_wage = median_dict['Average Weekly Wage']
-    df['Relative_Wage'] = np.where(df['Average Weekly Wage'] > median_wage, 1,0) #('Above Median', 'Below Median')
+    df['Relative_Wage'] = np.where(df['Average Weekly Wage'] > median_wage, 1, 0)  # ('Above Median', 'Below Median')
     financial_impact(df)
 
     age_bins = [0, 25, 40, 55, 70, 100]  # Define bins
@@ -192,8 +199,8 @@ def pipeline(df, n_fold,  numerical_features=numerical_features):
     ).astype('category').cat.codes
 
     # Scaling
-    scaler = joblib.load(f'../OthersPipeline/Scaler_{n_fold}.pkl')
-    df[numerical_features]  = scaler.transform(df[numerical_features])  
+    scaler = joblib.load(os.path.join(others_pipeline_base_dir, f'Scaler_{n_fold}.pkl'))
+    df[numerical_features] = scaler.transform(df[numerical_features])
 
     return df
 
@@ -209,7 +216,7 @@ def predict_probability(df, fold, selected_features=selected_features):
     - list: A list of mapped class predictions.
     """
     # Import model
-    model = joblib.load(f'../OpenEnded/Model_{fold}.pkl')
+    model = joblib.load(os.path.join(models_base_dir, f'Model_{fold}.pkl'))
 
     return model.predict_proba(df[selected_features])
 

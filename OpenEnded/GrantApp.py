@@ -7,9 +7,12 @@ import pandas as pd
 
 # Prediction function
 def make_predictions(data_input):
+    all_folds_predictions = np.zeros((len(data_input), 8)) 
+
     for n_fold in range(6):
         df = pipeline(data_input, n_fold)
-        all_folds_predictions = predict_probability(df, n_fold)
+        fold_predictions = predict_probability(df, n_fold)
+        all_folds_predictions += fold_predictions 
         
         # Define targets mapping
     class_mapping = {
