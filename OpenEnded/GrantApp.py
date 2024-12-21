@@ -66,7 +66,7 @@ class GrantApp:
             for workers' compensation claims. This app leverages the power of machine learning to assist the New York Workers' Compensation Board (WCB)
             in managing and reviewing claims more efficiently. <br>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The WCB has reviewed millions of claims over the years, but manually processing each one is a time-consuming and
-            complex task. <b>GrantApp</b>* aims to automate this process by providing a <b>prediction model</b> that can help streamline the decision-making
+            complex task. <b>GrantApp</b> aims to automate this process by providing a <b>prediction model</b> that can help streamline the decision-making
             for new claims based on historical data.<br>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On this platform, you can navigate to different sections: <br>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b> - Problem</b>: Understand the problem we are addressing.<br>
