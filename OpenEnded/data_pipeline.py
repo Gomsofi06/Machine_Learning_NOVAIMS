@@ -4,6 +4,7 @@ import pandas as pd
 # Others
 import os
 import sys
+import xgboost as xgb
 # setting path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils import *
@@ -216,7 +217,8 @@ def predict_probability(df, fold, selected_features=selected_features):
     - list: A list of mapped class predictions.
     """
     # Import model
-    model = joblib.load(os.path.join(models_base_dir, f'Model_{fold}.pkl'))
+    model = xgb.XGBClassifier()
+    model.load_model(os.path.join(models_base_dir, f'Model_{fold}.json'))
 
     return model.predict_proba(df[selected_features])
 
