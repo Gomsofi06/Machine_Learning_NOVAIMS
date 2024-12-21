@@ -32,6 +32,8 @@ def make_predictions(data_input):
 
     st.dataframe(predictions_df)
 
+    return predictions_df
+
 
 
 
@@ -158,13 +160,23 @@ class GrantApp:
                 except Exception as e:
                     st.markdown(f'<p style="color: red; font-size: 16px;">An error occurred while processing the input data: {e}</p>', unsafe_allow_html=True)
 
-        # Create a Predict button
-        if st.button("Predict"):
-            if data_input is not None:
-                prediction = make_predictions(data_input)  # Call prediction function
+        # Show the "Predict" button only after data has been uploaded or entered manually
+        if data_input is not None:
+            if st.button("Predict"):
+                predictions_df = make_predictions(data_input)  # Call prediction function
                 st.success("Prediction made successfully!")
-            else:
-                st.error("Please provide input data before making a prediction.")
+                # Convert the DataFrame to CSV
+                csv = predictions_df.to_csv(index=False)
+                # Download button
+                st.download_button(
+                    label="Download CSV", 
+                    data=csv, 
+                    file_name="predictions.csv", 
+                    mime="text/csv"
+                )
+
+        else:
+            st.warning("Please provide input data before making a prediction.")
 
 
     def run(self):

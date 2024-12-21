@@ -35,6 +35,9 @@ selected_features = ['Age at Injury', 'Average Weekly Wage', 'Birth Year', 'IME-
        'Age_Group']
 
 def pipeline(df, n_fold,  numerical_features=numerical_features):
+    # Put Claim Indentifier as index
+    df.set_index('Claim Identifier', inplace=True)
+    
     # Rename the column 'WCIO Part Of Body Code' to 'WCIO Part Of Body Code'
     if 'WCIO Part of Body Code' in df.columns:
         df.rename(columns={'WCIO Part of Body Code': 'WCIO Part Of Body Code'}, inplace=True)
