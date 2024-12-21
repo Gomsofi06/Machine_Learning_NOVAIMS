@@ -34,7 +34,7 @@ selected_features = ['Age at Injury', 'Birth Year', 'IME-4 Count', 'Number of De
        'Enc Zip Code', 'Relative_Wage', 'Financial Impact Category',
        'Age_Group']
 
-def pipeline(df, numerical_features=numerical_features):
+def pipeline(df, n_fold,  numerical_features=numerical_features):
     # Rename the column 'WCIO Part Of Body Code' to 'WCIO Part Of Body Code'
     if 'WCIO Part of Body Code' in df.columns:
         df.rename(columns={'WCIO Part of Body Code': 'WCIO Part Of Body Code'}, inplace=True)
@@ -152,7 +152,7 @@ def pipeline(df, numerical_features=numerical_features):
 
     # Frequency Encoder
     for column_name in enc_feat_dict['FrequencyEncoder']:
-        with open(f'../Encoders/{column_name}Encoder.json', 'r') as f:
+        with open(f'../Encoders/{column_name}Encoder_{n_fold}.json', 'r') as f:
             freq_mapping = json.load(f)
         # Define new column name
         new_column_name = f"Enc {column_name}"
@@ -170,7 +170,7 @@ def pipeline(df, numerical_features=numerical_features):
     # Imputation na - phase 2
     columns = ["Age at Injury","Average Weekly Wage"]
     # Load the saved median values from the json file
-    with open('../OthersPipeline/medians.json', 'r') as f:
+    with open(f'../OthersPipeline/medians_{n_fold}.json', 'r') as f:
         median_dict = json.load(f)
     # Impute missing values for 'Age at Injury' and 'Average Weekly Wage'
     for col in columns:
@@ -192,7 +192,7 @@ def pipeline(df, numerical_features=numerical_features):
     ).astype('category').cat.codes
 
     # Scaling
-    scaler = joblib.load('../OthersPipeline/Scaler.pkl')
+    scaler = joblib.load(f'../OthersPipeline/Scaler_{n_fold}.pkl')
     df[numerical_features]  = scaler.transform(df[numerical_features])  
 
     return df
@@ -210,6 +210,7 @@ def predict_probability(df, fold, selected_features=selected_features):
     """
     # Import model
     model = joblib.load(f'../OpenEnded/Model_{fold}.pkl')
+    print(model)
 
     return model.predict_proba(df[selected_features])
 
