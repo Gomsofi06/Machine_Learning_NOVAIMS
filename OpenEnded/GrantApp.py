@@ -65,9 +65,30 @@ class GrantApp:
 
     # Sample prediction function
     def make_prediction(data_input):
-        df = pipeline(data_input)
-        predictions = predict(data_input)
-        return predictions
+        for n_fold in range(6):
+            df = pipeline(data_input, n_fold)
+            all_folds_predictions = predict_probability(df, n_fold)
+        
+        # Define targets mapping
+        class_mapping = {
+        0:'1. CANCELLED', 
+        1:'2. NON-COMP',
+        2:'3. MED ONLY', 
+        3:'4. TEMPORARY',
+        4:'5. PPD SCH LOSS', 
+        5:'6. PPD NSL', 
+        6:'7. PTD', 
+        7:'8. DEATH'
+        }
+
+        final_test_preds = np.argmax(all_folds_predictions / 6, axis=1)
+        predictions_df = pd.DataFrame({
+            'Claim Identifier': df.index,
+            'Claim Injury Type': final_test_preds
+        })
+        predictions_df["Claim Injury Type"] = predictions_df["Claim Injury Type"].replace(class_mapping)
+
+        display(predictions_df)
 
         
     def display_prediction(self):

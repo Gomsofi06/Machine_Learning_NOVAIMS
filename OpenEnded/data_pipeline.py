@@ -197,7 +197,7 @@ def pipeline(df, numerical_features=numerical_features):
 
     return df
 
-def predict(df, selected_features=selected_features):
+def predict_probability(df, fold, selected_features=selected_features):
     """
     Predict outcomes using a pre-trained model and map predictions to class names.
     
@@ -209,25 +209,7 @@ def predict(df, selected_features=selected_features):
     - list: A list of mapped class predictions.
     """
     # Import model
-    model = joblib.load('../OpenEnded/final_model.pkl')
-    
-    # Predict
-    pred = model.predict(df[selected_features])
+    model = joblib.load(f'../OpenEnded/Model_{fold}.pkl')
 
-    # Define mapping
-    class_mapping = {
-        0: '1. CANCELLED', 
-        1: '2. NON-COMP',
-        2: '3. MED ONLY', 
-        3: '4. TEMPORARY',
-        4: '5. PPD SCH LOSS', 
-        5: '6. PPD NSL', 
-        6: '7. PTD', 
-        7: '8. DEATH'
-    }
-
-    # Map predictions to class labels
-    mapped_predictions = [class_mapping[label] for label in pred]
-
-    return mapped_predictions
+    return model.predict_proba(df[selected_features])
 
