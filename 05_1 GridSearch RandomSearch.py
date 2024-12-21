@@ -84,8 +84,7 @@ scaler_train = StandardScaler()
 X_train[numerical_features] = scaler_train.fit_transform(X_train[numerical_features])
 X_val[numerical_features] = scaler_train.transform(X_val[numerical_features])
 
-# The model CatBoost and XGBoost don't do well on the dataset with feature selection
-drop_list = ["Average Weekly Wage"]
+drop_list = []
 if feature_selection != None:
     for col in X_train.columns:
         if col not in feature_selection:

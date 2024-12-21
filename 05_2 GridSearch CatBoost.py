@@ -81,15 +81,14 @@ y_val_ray = ray.put(y_val)
 # Define the search space
 search_space = {
     # Model Dependent
-    "iterations": tune.grid_search([300,500]), #[ 300, 400, 500, 600,650, 700, 800] 
-    "learning_rate": tune.grid_search([0.05,0.7,0.1]),  #[0.03, 0.05, 0.07, 0.1,0.11,0.3,0.4,0.5,0.6]
-    "depth": tune.grid_search([5, 6]),        #[4,5,6,7,9]   
-    "l2_leaf_reg": tune.grid_search([6,9]),   #[4,5,6,9]                
-    "bagging_temperature": tune.grid_search([0.4,0.7]), #[0.2, 0.4, 0.45, 0.5, 0.8]      
-    #"grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
+    "iterations": tune.grid_search([ 300, 400, 500, 600,650, 700, 800,1000]),
+    "learning_rate": tune.grid_search([0.03, 0.05, 0.07, 0.1,0.11,0.3,0.4,0.5]), # Accidently incrised the learning rate to much
+    "depth": tune.grid_search([4,5,6,7,9]),         
+    "l2_leaf_reg": tune.grid_search([4,5,6,7,9]),                
+    "bagging_temperature": tune.grid_search([0.2, 0.4, 0.45, 0.5, 0.7, 0.8]),      
+    "grow_policy": tune.grid_search(["SymmetricTree","Lossguide"]),                       
     
     # Always Use
-    ###"use_SMOTE or use_RandomUnderSampler": tune.grid_search([False, "SMOTE", "RandomUnderSampler"]),
     "random_state":random_state 
 }
 
@@ -109,7 +108,7 @@ def CatBoosted_GridSearch(config):
         depth=config["depth"],
         l2_leaf_reg=config["l2_leaf_reg"],
         bagging_temperature=config["bagging_temperature"],
-        #grow_policy=config["grow_policy"],
+        grow_policy=config["grow_policy"],
         # -------------------
         random_state = config["random_state"],
         custom_metric='F1', 

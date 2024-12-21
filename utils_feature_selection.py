@@ -114,7 +114,7 @@ def check_performace(model_copy,X,y,features_to_scale,feature_selection,n_folds 
         X_train[features_to_scale]  = scaler.transform(X_train[features_to_scale])
         X_val[features_to_scale]  = scaler.transform(X_val[features_to_scale])  
 
-        drop_list = ["Average Weekly Wage"]
+        drop_list = []
         if feature_selection != []:
             for col in X_train.columns:
                 if col not in feature_selection:
