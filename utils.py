@@ -421,7 +421,7 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False):
+def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False, **kwargs):
 
     new_column_name = f"Enc {column_name}"
 
@@ -438,19 +438,20 @@ def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False):
     freq_mapping["Unknown"] = freq_mapping.get("Unknown", default_value)
 
     if save_encoding:
+        n_fold = kwargs['fold']
         # Create folder if it does not exist
         folder_path = "./Encoders/"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         # Save the frequency mapping to a JSON file
-        with open(f'./Encoders/{column_name}Encoder.json', 'w') as f:
+        with open(f'./Encoders/{column_name}Encoder_{n_fold}.json', 'w') as f:
             json.dump(freq_mapping, f, indent=4)
 
     df[new_column_name] = df[column_name].map(freq_mapping)
     test_df[new_column_name] = test_df[column_name].map(freq_mapping).fillna(default_value)
 
 
-def apply_frequency_encoding(df, test_df, save_encoding=False):
+def apply_frequency_encoding(df, test_df, save_encoding=False, **kwargs):
     frequency_encoder_vars = [
         'County of Injury',
         'District Name',
@@ -462,7 +463,7 @@ def apply_frequency_encoding(df, test_df, save_encoding=False):
     ]
 
     for col in frequency_encoder_vars:
-        frequency_encoding(df, col, test_df, save_encoding)
+        frequency_encoding(df, col, test_df, save_encoding, **kwargs)
     
     df = df.drop(columns=frequency_encoder_vars)
     test_df = test_df.drop(columns=frequency_encoder_vars) 
@@ -583,13 +584,14 @@ def save_results_csv(model, features, y_train, y_train_pred, y_val, y_val_pred):
 
     print(f"Results added to {filename}")
 
-def NA_imputer(train_df, test_df, save_median=False):
+def NA_imputer(train_df, test_df, save_median=False, **kwargs):
 
     columns = ["Age at Injury","Average Weekly Wage"]
     imputation_value  = train_df[columns].median()
 
     # Save Median Values
     if save_median:
+        n_fold = kwargs['fold']
         # Create a dictionary to store the median values for future use
         median_dict = imputation_value.to_dict()
         # Create folder if it does not exist
@@ -598,7 +600,7 @@ def NA_imputer(train_df, test_df, save_median=False):
             os.makedirs(folder_path)
         else:
             print('')
-        with open('./OthersPipeline/medians.json', 'w') as f:
+        with open(f'./OthersPipeline/medians_{n_fold}.json', 'w') as f:
             json.dump(median_dict, f, indent=4)
 
     for col in columns:
