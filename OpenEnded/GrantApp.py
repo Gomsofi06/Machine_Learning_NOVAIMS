@@ -128,7 +128,7 @@ class GrantApp:
 
             if uploaded_csv is not None:
                 try:
-                    data_input = pd.read_csv(uploaded_csv)
+                    data_input = pd.read_csv(uploaded_csv, index_col='Claim Identifier')
                     st.success("File uploaded successfully!")
 
                     st.markdown('<p style="color: #465e54; font-size: 20px;">Here is a preview of your uploaded CSV:</p>', unsafe_allow_html=True)
