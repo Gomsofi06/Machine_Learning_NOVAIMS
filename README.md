@@ -22,8 +22,8 @@ As part of the Open-Ended section of this project, **GrantApp** was developed to
 ### How to Run
 1. Clone the repository and navigate to the `OpenEnded` folder:
    ```bash
-   git clone [<repository-url>](https://github.com/Gomsofi06/Machine_Learning_NOVAIMS.git)
-   cd [<repository-name>](https://github.com/Gomsofi06/Machine_Learning_NOVAIMS.git)/OpenEnded
+   git clone https://github.com/Gomsofi06/Machine_Learning_NOVAIMS.git
+   cd ./OpenEnded
    
 2. Ensure you have Streamlit installed. If not, install it using:
    ```bash
