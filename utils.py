@@ -421,7 +421,7 @@ def flag_weekend_accidents(df, date_column):
     return df
     
 
-def frequency_encoding(df, column_name, test_df, save_encoding, verbose= False, **kwargs):
+def frequency_encoding(df, column_name, test_df, save_encoding, **kwargs):
 
     new_column_name = f"Enc {column_name}"
 
