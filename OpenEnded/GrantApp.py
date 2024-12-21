@@ -5,6 +5,36 @@ from data_pipeline import *
 
 import pandas as pd
 
+# Prediction function
+def make_predictions(data_input):
+    for n_fold in range(6):
+        df = pipeline(data_input, n_fold)
+        all_folds_predictions = predict_probability(df, n_fold)
+        
+        # Define targets mapping
+    class_mapping = {
+        0:'1. CANCELLED', 
+        1:'2. NON-COMP',
+        2:'3. MED ONLY', 
+        3:'4. TEMPORARY',
+        4:'5. PPD SCH LOSS', 
+        5:'6. PPD NSL', 
+        6:'7. PTD', 
+        7:'8. DEATH'
+    }
+
+    final_test_preds = np.argmax(all_folds_predictions / 6, axis=1)
+    predictions_df = pd.DataFrame({
+        'Claim Identifier': df.index,
+        'Claim Injury Type': final_test_preds
+    })
+    predictions_df["Claim Injury Type"] = predictions_df["Claim Injury Type"].replace(class_mapping)
+
+    st.dataframe(predictions_df)
+
+
+
+
 def get_session_state():
     """
     Utility function to retrieve the Streamlit session state.
@@ -63,34 +93,7 @@ class GrantApp:
             """, unsafe_allow_html=True 
         )
 
-    # Sample prediction function
-    def make_prediction(data_input):
-        for n_fold in range(6):
-            df = pipeline(data_input, n_fold)
-            all_folds_predictions = predict_probability(df, n_fold)
-        
-        # Define targets mapping
-        class_mapping = {
-        0:'1. CANCELLED', 
-        1:'2. NON-COMP',
-        2:'3. MED ONLY', 
-        3:'4. TEMPORARY',
-        4:'5. PPD SCH LOSS', 
-        5:'6. PPD NSL', 
-        6:'7. PTD', 
-        7:'8. DEATH'
-        }
 
-        final_test_preds = np.argmax(all_folds_predictions / 6, axis=1)
-        predictions_df = pd.DataFrame({
-            'Claim Identifier': df.index,
-            'Claim Injury Type': final_test_preds
-        })
-        predictions_df["Claim Injury Type"] = predictions_df["Claim Injury Type"].replace(class_mapping)
-
-        display(predictions_df)
-
-        
     def display_prediction(self):
         """
         Use user input to create a prediction.
@@ -104,77 +107,65 @@ class GrantApp:
             its outcome. The model we use has been trained on historical data and is designed to assist the New York Workers' Compensation Board in making more efficient and accurate decisions.<br>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To get started, please provide the necessary details about the claim. Based on the input you provide, the model will predict the class in which the
             claim belongs to, helping the WCB make data-driven decisions and expedite the claims process.<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Our prediction model is based on historical claims data and uses advanced machine learning techniques to generate the results. While the predictions
-            are designed to assist the WCB, they are not definitive decisions and should be used alongside human judgment in the claim review process.<br>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Let’s begin by entering the details of a new claim, and let’s see how <b>GrantApp</b> can help you make predictions more efficiently!<br>
             </p>
-            """, unsafe_allow_html=True 
+            """, unsafe_allow_html=True
         )
 
-        # Use the option menu for selection
         selected = option_menu(
-            "Select Input Method", 
-            ["Input Manually", "Upload CSV"], 
+            "Select Input Method",
+            ["Input Manually", "Upload CSV"],
             menu_icon="cast", default_index=0
         )
 
+        data_input = None  # Initialize variable to ensure it's defined
+
         if selected == "Upload CSV":
-            # Style the instruction for the CSV upload using Markdown
             st.markdown('<p style="color: #465e54; font-size: 20px;">Choose a CSV file to upload:</p>', unsafe_allow_html=True)
-            
-            # CSV Upload Section
             uploaded_csv = st.file_uploader("", type="csv")
 
-            # Check if the user has uploaded a file
             if uploaded_csv is not None:
                 try:
-                    # Read the file into a Pandas DataFrame
-                    data = pd.read_csv(uploaded_csv)
+                    data_input = pd.read_csv(uploaded_csv)
                     st.success("File uploaded successfully!")
 
-                    # Display the first few rows of the file
                     st.markdown('<p style="color: #465e54; font-size: 20px;">Here is a preview of your uploaded CSV:</p>', unsafe_allow_html=True)
-                    st.dataframe(data)
+                    st.dataframe(data_input)
 
-                    # Additional processing (optional)
-                    st.markdown(f'<p style="color: #465e54; font-size: 16px;">The CSV has {data.shape[0]} rows and {data.shape[1]} columns.</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p style="color: #465e54; font-size: 16px;">The CSV has {data_input.shape[0]} rows and {data_input.shape[1]} columns.</p>', unsafe_allow_html=True)
 
                 except Exception as e:
                     st.markdown(f'<p style="color: red; font-size: 16px;">An error occurred while reading the file: {e}</p>', unsafe_allow_html=True)
 
         elif selected == "Input Manually":
-            # Style the text with color and font size using Markdown (HTML inside)
             st.markdown('<p style="color: #465e54; font-size: 20px;">Enter data manually, one row per line.</p>', unsafe_allow_html=True)
-            st.markdown('<p style="color: #465e54; font-size: 15;">Enter data (comma separated)</p>', unsafe_allow_html=True)
-            
-            # Input text area for data entry (assuming CSV-like input for simplicity)
-            data_input = st.text_area("", height=200)
-            
-            if data_input:
-                # Parse the text into a DataFrame
+            st.markdown('<p style="color: #465e54; font-size: 15px;">Enter data (comma separated)</p>', unsafe_allow_html=True)
+
+            manual_input = st.text_area("", height=200)
+
+            if manual_input:
                 try:
-                    # Split the input into lines and columns to create a list of rows
-                    rows = [line.split(',') for line in data_input.strip().split('\n')]
+                    rows = [line.split(',') for line in manual_input.strip().split('\n')]
                     columns = [f"Column {i+1}" for i in range(len(rows[0]))]
-                    
-                    # Create DataFrame
-                    data_manual = pd.DataFrame(rows, columns=columns)
+                    data_input = pd.DataFrame(rows, columns=columns)
+
                     st.success("Data entered successfully!")
-
-                    # Display the entered data
                     st.markdown('<p style="color: #465e54; font-size: 20px;">Here is the manually entered data:</p>', unsafe_allow_html=True)
-                    st.dataframe(data_manual)
+                    st.dataframe(data_input)
 
-                    # Additional processing (optional)
-                    st.markdown(f'<p style="color: #465e54; font-size: 16px;">The entered data has {data_manual.shape[0]} rows and {data_manual.shape[1]} columns.</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p style="color: #465e54; font-size: 16px;">The entered data has {data_input.shape[0]} rows and {data_input.shape[1]} columns.</p>', unsafe_allow_html=True)
 
                 except Exception as e:
                     st.markdown(f'<p style="color: red; font-size: 16px;">An error occurred while processing the input data: {e}</p>', unsafe_allow_html=True)
 
         # Create a Predict button
         if st.button("Predict"):
-            prediction = make_prediction(data_input)  # Call prediction function
-            st.success(f"Prediction: {prediction}")
+            if data_input is not None:
+                prediction = make_predictions(data_input)  # Call prediction function
+                st.success("Prediction made successfully!")
+            else:
+                st.error("Please provide input data before making a prediction.")
+
 
     def run(self):
             """
