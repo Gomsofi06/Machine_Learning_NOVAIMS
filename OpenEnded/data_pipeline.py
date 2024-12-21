@@ -210,7 +210,6 @@ def predict_probability(df, fold, selected_features=selected_features):
     """
     # Import model
     model = joblib.load(f'../OpenEnded/Model_{fold}.pkl')
-    print(model)
 
     return model.predict_proba(df[selected_features])
 
