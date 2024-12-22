@@ -348,6 +348,7 @@ def dist_dates(df_list):
         df['Days_to_C3'] = df['Days_to_C3'].fillna(-1).astype(int)
 
 
+
 # Define the function that assigns a season based on the exact date
 def get_season(date):
     # Extract the month and day from the date
